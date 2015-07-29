@@ -1,6 +1,7 @@
 package main;
 
 import com.jme3.network.serializing.Serializer;
+import network.ChatMessage;
 import network.ClientLoginMessage;
 import network.ServerAddPlayerMessage;
 import network.ServerLoginMessage;
@@ -17,5 +18,6 @@ public class Util {
         Serializer.registerClass(ClientLoginMessage.class);
         Serializer.registerClass(ServerLoginMessage.class);
         Serializer.registerClass(ServerAddPlayerMessage.class);
+        Serializer.registerClass(ChatMessage.class);
     }
 }

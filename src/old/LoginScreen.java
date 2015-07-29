@@ -83,10 +83,10 @@ public class LoginScreen extends AbstractAppState implements ScreenController {
     }
     
   public void login() {
-      if( app.connect(serverIp.getRealText(), Integer.valueOf(port.getRealText()), name.getRealText() ) ) {
-        app.getGuiViewPort().removeProcessor(niftyDisplay);
-        app.getStateManager().detach(this);
+      //if( app.connect(serverIp.getRealText(), Integer.valueOf(port.getRealText()), name.getRealText() ) ) {
+      //  app.getGuiViewPort().removeProcessor(niftyDisplay);
+      //  app.getStateManager().detach(this);
         //app.startGame();
-      }
+      //}
     }
 }

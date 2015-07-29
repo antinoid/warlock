@@ -33,7 +33,8 @@ public class ServerListener implements MessageListener<HostedConnection>, Connec
                 VectorMessage.class,
                 ClientLoginMessage.class,
                 ServerLoginMessage.class,
-                ServerAddPlayerMessage.class);
+                ServerAddPlayerMessage.class,
+                ChatMessage.class);
     }
     
     @Override
@@ -84,22 +85,19 @@ public class ServerListener implements MessageListener<HostedConnection>, Connec
             ServerClientData.setConnected(clientId, true);
             ServerClientData.setPlayerId(clientId, newPlayerId);
             System.out.println("new Player: " + msg.name);
-            // TODO broadcast new player
             ServerLoginMessage serverLoginMessage = new ServerLoginMessage(false, newPlayerId, clientId, msg.name);
             source.send(serverLoginMessage);
             // add player
             app.enqueue(new Callable<Void>() {
 
                 public Void call() throws Exception {
-                    //System.out.println("wM: " + worldManager);
-                    System.out.println("Id: " + newPlayerId);
-                    //System.out.println("msg.name: "+ msg.name);
                     worldManager.addPlayer(newPlayerId, clientId, msg.name);
                     PlayerData.setData(newPlayerId, "client_id", clientId);
                     for(Iterator<PlayerData> it = PlayerData.getPlayers().iterator(); it.hasNext();) {
                         PlayerData playerData = it.next();
                         if(playerData.getId() != newPlayerId) {
                             worldManager.getSyncManager().send(clientId, new ServerAddPlayerMessage(playerData.getId(), playerData.getIntData("client_id"), playerData.getStringData("name")));
+                            server.getConnection(playerData.getIntData("client_id")).send(new ChatMessage(msg.name));
                         }
                     }
                     return null;
@@ -110,7 +108,10 @@ public class ServerListener implements MessageListener<HostedConnection>, Connec
             VectorMessage msg = (VectorMessage) message;
             msg.setVector(new Vector3f(2, 2, 2));
             source.send(msg);
-        } 
+        } else if (message instanceof ChatMessage) {
+            ChatMessage msg = (ChatMessage) message;
+            server.broadcast(msg);
+        }
     }
 
 

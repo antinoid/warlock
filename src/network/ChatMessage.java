@@ -1,6 +1,5 @@
 package network;
 
-import com.jme3.math.Vector2f;
 import com.jme3.network.AbstractMessage;
 import com.jme3.network.serializing.Serializable;
 
@@ -10,10 +9,14 @@ import com.jme3.network.serializing.Serializable;
  */
 @Serializable
 public class ChatMessage extends AbstractMessage {
-    private String message;
-    private String player;
+    private String text = "";
+    private String player = "";
     public ChatMessage() {}
-    public ChatMessage(String s) { message = s; }
-    public void setMessage(String s) { message = s; }
-    public String getMessage() { return message; }
+    public ChatMessage(String player) { this.player = player; }
+    public ChatMessage(String text, String player) { 
+        this.text = text; 
+        this.player = player;
+    }
+    public String getText() { return text; }
+    public String getPlayer() { return player; }
 }

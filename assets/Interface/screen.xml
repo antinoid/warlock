@@ -2,7 +2,6 @@
 <nifty>
     <useStyles filename="nifty-default-styles.xml"/>
     <useControls filename="nifty-default-controls.xml"/>
-    
     <screen id="start" controller="main.ClientMain">
         <layer id="background" childLayout="absolute" backgroundImage="Interface/background.jpeg"/>
         <layer id="foreground" childLayout="center" backgroundColor="#77777785">

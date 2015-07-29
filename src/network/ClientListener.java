@@ -31,7 +31,9 @@ public class ClientListener implements MessageListener<Client>, ClientStateListe
                 VectorMessage.class,
                 ClientLoginMessage.class,
                 ServerLoginMessage.class,
-                ServerAddPlayerMessage.class);
+                ServerAddPlayerMessage.class,
+                ChatMessage.class);
+                
     }
     
     @Override
@@ -57,11 +59,14 @@ public class ClientListener implements MessageListener<Client>, ClientStateListe
             
         } else if (message instanceof ServerAddPlayerMessage) {
             app.updatePlayerData();
-        }else if (message instanceof VectorMessage) {            
+        } else if (message instanceof VectorMessage) {            
             //System.out.println("VectorMessage received");
             VectorMessage vectorMessage = (VectorMessage) message;
             //System.out.println(vectorMessage.getVector());
             //app.updatePlayerData();
+        } else if (message instanceof ChatMessage) {
+            ChatMessage msg = (ChatMessage) message;
+            app.updateChat(msg.getText(), msg.getPlayer());
         }
     }
 

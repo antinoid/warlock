@@ -237,7 +237,7 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
             //System.out.println(myGroupId);
             for(Iterator<PlayerData> it = PlayerData.getPlayers().iterator(); it.hasNext();) {
                 PlayerData playerData = it.next();
-                System.out.println("name: " + playerData.getStringData("name"));
+                //System.out.println("name: " + playerData.getStringData("name"));
             }
         }
     }    

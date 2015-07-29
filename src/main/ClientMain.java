@@ -1,7 +1,6 @@
 package main;
 
 import com.jme3.app.SimpleApplication;
-import com.jme3.network.Message;
 import com.jme3.network.Network;
 import com.jme3.network.NetworkClient;
 import com.jme3.niftygui.NiftyJmeDisplay;
@@ -9,17 +8,20 @@ import com.jme3.scene.Spatial;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeContext;
 import de.lessvoid.nifty.Nifty;
+import de.lessvoid.nifty.controls.Label;
 import de.lessvoid.nifty.controls.TextField;
 import de.lessvoid.nifty.controls.textfield.TextFieldControl;
+import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.screen.Screen;
 import de.lessvoid.nifty.screen.ScreenController;
+import de.lessvoid.nifty.tools.Color;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
+import network.ChatMessage;
 import network.ClientListener;
-import network.ClientLoginMessage;
 import network.ServerAddPlayerMessage;
 import network.sync.PhysicsSyncManager;
 
@@ -43,6 +45,8 @@ public class ClientMain extends SimpleApplication implements ScreenController {
     private TextField nameTextfield;
     private TextRenderer statusText;
     private String name;
+    private Label chatLabels[] = new Label[6];
+    private int chatIndex = 0;   
     
     public static void main(String[] args) {
         AppSettings settings = new AppSettings(true);
@@ -120,10 +124,9 @@ public class ClientMain extends SimpleApplication implements ScreenController {
      * connect to server (called from gui)
      */
     public void login() {
-        System.out.println("asdfsdfsdf");
         final String serverIp = nifty.getScreen("start").findElementByName("foreground").findElementByName("loginpanel").findElementByName("logintop").findElementByName("right").findElementByName("IPTextfield").getControl(TextFieldControl.class).getRealText();
         final int port = Integer.valueOf(nifty.getScreen("start").findElementByName("foreground").findElementByName("loginpanel").findElementByName("logintop").findElementByName("right").findElementByName("PortTextfield").getControl(TextFieldControl.class).getRealText());
-        final String name = nifty.getScreen("start").findElementByName("foreground").findElementByName("loginpanel").findElementByName("logintop").findElementByName("right").findElementByName("NameTextfield").getControl(TextFieldControl.class).getRealText();
+        name = nifty.getScreen("start").findElementByName("foreground").findElementByName("loginpanel").findElementByName("logintop").findElementByName("right").findElementByName("NameTextfield").getControl(TextFieldControl.class).getRealText();
         if(name.trim().length() == 0) {
             setStatusText("invalid Username");
             // TODO check player names
@@ -136,39 +139,35 @@ public class ClientMain extends SimpleApplication implements ScreenController {
             client.start();
         } catch (IOException ex) {
             setStatusText(ex.getMessage());
-        }
-        
+        }        
     }
-    /*
-    final String userName = nifty.getScreen("start ").
-                findElementByName("foreground").
-                findElementByName("loginpanel").
-                findElementByName("logintop").
-                findElementByName("right").
-                findElementByName("NameTextfield").
-                getControl(TextFieldControl.class).getText();*/    
-    public boolean connect(String server, int port, String name) {
+    
+    /**
+     * called from gui
+     */
+    public void sendChatMessage() {
         try {
-            //client = Network.connectToServer(server, port);
-            client.connectToServer(server, port, port);       
-            client.start();
-            //Message loginMessage = new ClientLoginMessage(name);
-            //client.send(loginMessage);
-            return true;
-        } catch(Exception e) {
-            e.printStackTrace(System.err);
-            System.out.println("unable to connect");
-            return false;
+        Element chatInput = nifty.getScreen("chat").findElementByName("layer").findElementByName("panel").findElementByName("input_panel").findElementByName("chat_textfield");
+        String text = chatInput.getControl(TextFieldControl.class).getText();
+        chatInput.getControl(TextFieldControl.class).setText("");
+        ChatMessage msg = new ChatMessage(text, name);
+        client.send(msg);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
     }
     
     public void startGame() {        
         //guiViewPort.removeProcessor(niftyDisplay);
         //nifty.gotoScreen("asdf");
         try {
-            nifty.fromXml("Interface/chat.xml", "chat", this);
+            nifty.fromXml("Interface/chat.xml", "chat", this);            
         } catch(Exception e) {
             e.printStackTrace();
+        }
+        for(int i = 0; i < chatLabels.length; i++) {
+            chatLabels[i] = nifty.getScreen("chat").findNiftyControl("chat_label" + (i+1), Label.class);
         }
         stateManager.attach(worldManager);
     }
@@ -187,7 +186,6 @@ public class ClientMain extends SimpleApplication implements ScreenController {
 
             public Void call() throws Exception {
                 List<PlayerData> players = PlayerData.getPlayers();
-                //System.out.println("players:" + players);
                 for (Iterator<PlayerData> it = players.iterator(); it.hasNext();) {
                     PlayerData data = it.next();
                     
@@ -197,10 +195,28 @@ public class ClientMain extends SimpleApplication implements ScreenController {
         });
     }   
 
-    public void test() {
-        System.out.println("TEEEST");
+    public void updateChat(String text, String player) {
+        if(chatIndex < chatLabels.length) { 
+            if(text.isEmpty()) {      
+                chatLabels[chatIndex].setText(player + " joined the game");
+            } else {
+                chatLabels[chatIndex].setText(player + ": " + text);
+            }
+            chatIndex++;
+        } else {
+            for(int i = 0; i < chatLabels.length - 1; i++) {
+                chatLabels[i].setText(chatLabels[i+1].getText());
+            }
+            if(text.isEmpty()) {
+                chatLabels[chatLabels.length - 1].setText(player + " joined the game");
+            } else {
+                chatLabels[chatLabels.length - 1].setText(player + ": " + text);
+            }
+        }
     }
+    
     public void bind(Nifty nifty, Screen screen) {
+
        // serverIpTextfield = screen.findNiftyControl("IPTextfield", TextField.class);
         //portTextfield = screen.findNiftyControl("PortTextfield", TextField.class);
         //nameTextfield = screen.findNiftyControl("NameTextfield", TextField.class);

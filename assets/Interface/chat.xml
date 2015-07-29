@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<nifty>
+    <useControls filename="nifty-default-controls.xml"/>
+    <useStyles filename="nifty-default-styles.xml"/>
+    <screen id="chat">
+        <layer id="GLayer5" childLayout="absolute">
+            <panel id="GPanel23" childLayout="center" width="388px" x="8" y="214" style="nifty-panel-simple" height="175px">
+                <control name="nifty-chat" id="GChat5" width="380px" x="23" y="146" lines="5" height="159px"/>
+            </panel>
+        </layer>
+    </screen>
+</nifty>

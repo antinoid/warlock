@@ -15,4 +15,5 @@ public class Globals {
     public static final int SCENE_FPS = 60;
     public static final float PHYSICS_FPS = 1f / 30f;
     public static final String TEST = "hallo";
+    public static final String TEST2 = "sinep";
 }

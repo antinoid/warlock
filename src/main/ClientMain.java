@@ -147,10 +147,10 @@ public class ClientMain extends SimpleApplication implements ScreenController {
      */
     public void sendChatMessage() {
         try {
-        Element chatInput = nifty.getScreen("chat").findElementByName("layer").findElementByName("panel").findElementByName("input_panel").findElementByName("chat_textfield");
+        Element chatInput = nifty.getScreen("hud").findElementByName("layer").findElementByName("panel").findElementByName("input_panel").findElementByName("chat_textfield");
         String text = chatInput.getControl(TextFieldControl.class).getText();
         chatInput.getControl(TextFieldControl.class).setText("");
-        ChatMessage msg = new ChatMessage(text, name);
+        ChatMessage msg = new ChatMessage(name + ": " + text);
         client.send(msg);
         } catch (Exception e) {
             e.printStackTrace();
@@ -158,16 +158,15 @@ public class ClientMain extends SimpleApplication implements ScreenController {
 
     }
     
-    public void startGame() {        
-        //guiViewPort.removeProcessor(niftyDisplay);
-        //nifty.gotoScreen("asdf");
+    public void startGame() {            
         try {
-            nifty.fromXml("Interface/chat.xml", "chat", this);            
+            nifty.gotoScreen("hud");
+            //nifty.fromXml("Interface/gamescreen.xml", "gamescreen", this);            
         } catch(Exception e) {
             e.printStackTrace();
         }
         for(int i = 0; i < chatLabels.length; i++) {
-            chatLabels[i] = nifty.getScreen("chat").findNiftyControl("chat_label" + (i+1), Label.class);
+            chatLabels[i] = nifty.getScreen("hud").findNiftyControl("chat_label" + (i+1), Label.class);
         }
         stateManager.attach(worldManager);
     }
@@ -195,23 +194,15 @@ public class ClientMain extends SimpleApplication implements ScreenController {
         });
     }   
 
-    public void updateChat(String text, String player) {
+    public void updateChat(String text) {
         if(chatIndex < chatLabels.length) { 
-            if(text.isEmpty()) {      
-                chatLabels[chatIndex].setText(player + " joined the game");
-            } else {
-                chatLabels[chatIndex].setText(player + ": " + text);
-            }
-            chatIndex++;
+            chatLabels[chatIndex].setText(text);            
+            chatIndex++;            
         } else {
             for(int i = 0; i < chatLabels.length - 1; i++) {
                 chatLabels[i].setText(chatLabels[i+1].getText());
             }
-            if(text.isEmpty()) {
-                chatLabels[chatLabels.length - 1].setText(player + " joined the game");
-            } else {
-                chatLabels[chatLabels.length - 1].setText(player + ": " + text);
-            }
+            chatLabels[chatLabels.length - 1].setText(player + ": " + text);
         }
     }
     

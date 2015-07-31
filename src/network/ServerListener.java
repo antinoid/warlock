@@ -59,7 +59,7 @@ public class ServerListener implements MessageListener<HostedConnection>, Connec
             public Void call() throws Exception {
                 String name = PlayerData.getStringData(playerId, "name");
                 worldManager.removePlayer(playerId);
-                server.broadcast(new ChatMessage("Server", name + " left the game"));                
+                server.broadcast(new ChatMessage(name + " left the game"));                
                 return null;
             }
         });
@@ -92,7 +92,7 @@ public class ServerListener implements MessageListener<HostedConnection>, Connec
                         PlayerData playerData = it.next();
                         if(playerData.getId() != newPlayerId) {
                             worldManager.getSyncManager().send(clientId, new ServerAddPlayerMessage(playerData.getId(), playerData.getIntData("client_id"), playerData.getStringData("name")));
-                            server.getConnection(playerData.getIntData("client_id")).send(new ChatMessage(msg.name));
+                            server.getConnection(playerData.getIntData("client_id")).send(new ChatMessage(msg.name + " joined the game"));
                         }
                     }
                     return null;

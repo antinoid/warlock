@@ -158,7 +158,7 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
     private boolean isServer() {
         return server != null;
     }
-        /**
+     /**
      * adds a new player with new id (used on server only)
      * @param id
      * @param groupId
@@ -201,22 +201,7 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
     
     @Override
     public void onAnalog(String name, float value, float tpf) {
-        if(name.equals("asd")) {
-            Camera cam = app.getCamera();
-            CollisionResults results = new CollisionResults();
-            Vector2f click2d = inputManager.getCursorPosition();
-            Vector3f click3d = cam.getWorldCoordinates(new Vector2f(click2d.x, click2d.y), 0f).clone();
-            Vector3f dir = cam.getWorldCoordinates(new Vector2f(click2d.x, click2d.y), 1f).subtractLocal(click3d).normalizeLocal();
-            Ray ray = new Ray(click3d, dir);
-            rootNode.collideWith(ray, results);
-            for (int i = 0; i < results.size(); i++) {
-                float dist = results.getCollision(i).getDistance();
-                Vector3f pt = results.getCollision(i).getContactPoint();
-                String target = results.getCollision(i).getGeometry().getName();
-                if(target.contains("terrainQuad")) {
-                    client.send(new VectorMessage(pt));
-                }
-            }            
+        if(name.equals("asd")) {            
         }
      }
     

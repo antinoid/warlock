@@ -12,7 +12,7 @@ public class ChatMessage extends AbstractMessage {
     private String text = "";
     private String player = "";
     public ChatMessage() {}
-    public ChatMessage(String player) { this.player = player; }
+    public ChatMessage(String text) { this.text = text; }
     public ChatMessage(String text, String player) { 
         this.text = text; 
         this.player = player;

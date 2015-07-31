@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <nifty>
-    <useStyles filename="nifty-default-styles.xml"/>
     <useControls filename="nifty-default-controls.xml"/>
+    <useStyles filename="nifty-default-styles.xml"/>
     <screen id="start" controller="main.ClientMain">
-        <layer id="background" childLayout="absolute" backgroundImage="Interface/background.jpeg"/>
+        <layer id="background" childLayout="absolute" backgroundImage="Interface/Pics/background.jpeg"/>
         <layer id="foreground" childLayout="center" backgroundColor="#77777785">
 			<panel id="loginpanel" childLayout="vertical" backgroundColor="#000A" valign="center" width="25%" height="32%">
 				<panel id="logintop" backgroundColor="#0000"  childLayout="horizontal" height="58%">
@@ -34,5 +34,24 @@
             </panel>
         </layer>
     </screen>
+    <screen id="hud" controller="main.ClientMain">
+        <layer id="layer" childLayout="center"paddingLeft="5px" paddingBottom="5px">
+            <panel id="panel" childLayout="vertical" backgroundColor="#666a" height ="180px" width="250px" align="left" valign="bottom">
+				<panel id="log_panel" childLayout="vertical" backgroundColor="#444b" height="80%" width="100%" align="center">
+					<control name="label" id="chat_label1" align="center" textHAlign="left" width="95%" height="16%"/>
+					<control name="label" id="chat_label2" align="center" textHAlign="left"width="95%" height="16%"/>
+					<control name="label" id="chat_label3" align="center" textHAlign="left" width="95%" height="16%"/>
+					<control name="label" id="chat_label4" align="center" textHAlign="left" width="95%" height="16%"/>
+					<control name="label" id="chat_label5" align="center" textHAlign="left" width="95%" height="16%"/>
+					<control name="label" id="chat_label6" align="center" textHAlign="left" width="95%" height="16%"/>
+				</panel>
+				<panel id="input_panel" childLayout="horizontal" width="100%" height="20%">
+					<control name="textfield" id="chat_textfield" valign="center" width="80%"/>						
+					<control name="button" id="chat_button" valign="center" width="20%" label="Send">
+						<interact onClick="sendChatMessage()"/>
+					</control>
+				</panel>
+            </panel>
+        </layer>
+    </screen>
 </nifty>
-<!--style="nifty-panel-simple"-->

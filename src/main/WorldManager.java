@@ -181,6 +181,12 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
         PlayerData.add(id, player);
     }
     
+    public void removePlayer(long id) {
+        if(isServer()) {
+            
+        }
+        PlayerData.remove(id);
+    }
     /*
     public void addUserControl(Control control) {
         userControls.add(control);
@@ -212,7 +218,7 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
                 }
             }            
         }
-    }
+     }
     
     @Override
     public void onAction(String name, boolean isPressed, float tpf) {

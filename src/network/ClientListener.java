@@ -66,7 +66,7 @@ public class ClientListener implements MessageListener<Client>, ClientStateListe
             //app.updatePlayerData();
         } else if (message instanceof ChatMessage) {
             ChatMessage msg = (ChatMessage) message;
-            app.updateChat(msg.getText(), msg.getPlayer());
+            app.updateChat(msg.getText());
         }
     }
 

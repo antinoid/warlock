@@ -50,24 +50,19 @@ public class ServerListener implements MessageListener<HostedConnection>, Connec
     }   
     
     @Override
-    public void connectionRemoved(Server server, HostedConnection client) {
+    public void connectionRemoved(Server serverr, HostedConnection client) {
         final int clientId = (int) client.getId();
         final long playerId = ServerClientData.getPlayerId(clientId);
         ServerClientData.remove(clientId);
-        /* TODO
         app.enqueue(new Callable<Void>() {
 
             public Void call() throws Exception {
                 String name = PlayerData.getStringData(playerId, "name");
                 worldManager.removePlayer(playerId);
-                server.broadcast(new ChatMessage("Server", name + " left the game"));
-                Logger.getLogger(ServerNetListener.class.getName()).log(Level.INFO, "Broadcast player left message");
-                if (PlayerData.getHumanPlayers().isEmpty()) {
-                    gameManager.stopGame();
-                }
+                server.broadcast(new ChatMessage(name + " left the game"));                
                 return null;
             }
-        });*/
+        });
      }
     
     public void messageReceived(HostedConnection source, Message message) {
@@ -97,7 +92,7 @@ public class ServerListener implements MessageListener<HostedConnection>, Connec
                         PlayerData playerData = it.next();
                         if(playerData.getId() != newPlayerId) {
                             worldManager.getSyncManager().send(clientId, new ServerAddPlayerMessage(playerData.getId(), playerData.getIntData("client_id"), playerData.getStringData("name")));
-                            server.getConnection(playerData.getIntData("client_id")).send(new ChatMessage(msg.name));
+                            server.getConnection(playerData.getIntData("client_id")).send(new ChatMessage(msg.name + " joined the game"));
                         }
                     }
                     return null;

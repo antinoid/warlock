@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nifty-styles>
+  <style id="list-player" base="nifty-label">
+    <attributes font="aurulent-sans-16.fnt" color="#ff0f" width="100%" align="left" textVAlign="center" textHAlign="center" />
+  </style>
+</nifty-styles>

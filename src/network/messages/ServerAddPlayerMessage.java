@@ -29,11 +29,12 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package network;
+package network.messages;
 
 import main.WorldManager;
 import network.sync.PhysicsSyncMessage;
 import com.jme3.network.serializing.Serializable;
+import java.util.concurrent.Callable;
 
 /**
  * used by the server to add a player on the client
@@ -57,8 +58,8 @@ public class ServerAddPlayerMessage extends PhysicsSyncMessage{
 
     @Override
     public void applyData(Object object) {
+        System.out.println("updating world manager");
         WorldManager manager = (WorldManager) object;
         manager.addPlayer(playerId, group_id, name);
     }
-
 }

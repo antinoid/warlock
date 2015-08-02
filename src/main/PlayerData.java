@@ -36,6 +36,10 @@ public class PlayerData {
         return list;
     }
     
+    public static synchronized HashMap getPlayersHash() {
+        return players;
+    }
+    
     public static synchronized void add(long id, PlayerData player) {
         players.put(id, player);
     }

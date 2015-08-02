@@ -1,4 +1,4 @@
-package network;
+package network.messages;
 
 import com.jme3.math.Vector3f;
 import com.jme3.network.AbstractMessage;

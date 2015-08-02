@@ -4,7 +4,7 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.network.Network;
 import com.jme3.network.Server;
 import com.jme3.system.JmeContext;
-import network.ServerAddPlayerMessage;
+import network.messages.ServerAddPlayerMessage;
 import network.ServerListener;
 import network.sync.PhysicsSyncManager;
 

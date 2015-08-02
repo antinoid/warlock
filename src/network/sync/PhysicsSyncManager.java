@@ -50,6 +50,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import main.ClientMain;
 
 /**
  * <p>Handles syncing of physics enabled server/client games. Puts messages in a queue
@@ -73,6 +74,7 @@ public class PhysicsSyncManager extends AbstractAppState implements MessageListe
     float syncTimer = 0;
     LinkedList<PhysicsSyncMessage> messageQueue = new LinkedList<PhysicsSyncMessage>();
     Application app;
+    ClientMain cm;
 
     public PhysicsSyncManager(Application app, Server server) {
         this.app = app;
@@ -81,6 +83,7 @@ public class PhysicsSyncManager extends AbstractAppState implements MessageListe
 
     public PhysicsSyncManager(Application app, Client client) {
         this.app = app;
+        this.cm = (ClientMain)app;
         this.client = client;
     }
 
@@ -159,6 +162,8 @@ public class PhysicsSyncManager extends AbstractAppState implements MessageListe
         } else {
             Logger.getLogger(PhysicsSyncManager.class.getName()).log(Level.WARNING, "Cannot find physics object for: ({0}){1}", new Object[]{message.syncId, message});
         }
+        //if(client != null)
+            //((ClientMain)app).uupdatePlayerData();
     }
 
     /**

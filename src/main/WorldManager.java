@@ -6,8 +6,6 @@ import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.AssetManager;
 import com.jme3.collision.CollisionResults;
-import com.jme3.font.BitmapFont;
-import com.jme3.font.BitmapText;
 import com.jme3.input.FlyByCamera;
 import com.jme3.input.InputManager;
 import com.jme3.input.KeyInput;
@@ -16,26 +14,19 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
-import com.jme3.material.Material;
-import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.network.Client;
 import com.jme3.network.Server;
-import com.jme3.niftygui.NiftyJmeDisplay;
 import com.jme3.renderer.Camera;
-import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
-import com.jme3.scene.shape.Box;
-import de.lessvoid.nifty.Nifty;
-import de.lessvoid.nifty.screen.Screen;
-import de.lessvoid.nifty.screen.ScreenController;
 import java.util.HashMap;
 import java.util.Iterator;
-import network.ServerAddPlayerMessage;
-import network.VectorMessage;
+import network.messages.ServerAddPlayerMessage;
+import network.messages.ServerRemovePlayerMessage;
+import network.messages.VectorMessage;
 import network.sync.PhysicsSyncManager;
 
 /**
@@ -53,8 +44,6 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
     private HashMap<Long, Spatial> entities = new HashMap<Long, Spatial>();
     private long myPlayerId;
     private long myGroupId;
-    private NiftyJmeDisplay niftyDisplay;
-    private Spatial player;
     private PhysicsSyncManager syncManager;
     
     public WorldManager(Application app, Node rootNode, Server server) {
@@ -71,13 +60,13 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
         this.assetManager = app.getAssetManager();
         this.inputManager = app.getInputManager();
         this.client = client;
-                        
+        /*                
         Box b = new Box(1f,1f,1f); 
         player = new Geometry("Colored Box", b); 
         Material boxMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md"); 
         boxMat.setColor("Color", ColorRGBA.Red);         
         player.setMaterial(boxMat); 
-        rootNode.attachChild(player);
+        rootNode.attachChild(player);*/
     }        
     
     @Override
@@ -89,33 +78,9 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
             FlyByCamera flyCam = this.app.getFlyByCamera();
             flyCam.setMoveSpeed(100);
             
-            /*
-             * Setup Nifty
-             */ 
-            //niftyDisplay = new NiftyJmeDisplay(
-                  //  this.app.getAssetManager(),
-                  //  this.app.getInputManager(),
-                 //   this.app.getAudioRenderer(),
-                  //  this.app.getGuiViewPort());
-
-            //niftyDisplay.getNifty().fromXml("Interface/chat.xml", "chat");
-            //niftyDisplay.
-            //this.app.getRenderManager().getRenderer().get
-            //this.app.getGuiViewPort().addProcessor(niftyDisplay);
             initCamera();
             initKeys();
-            //this.app.getGuiViewPort().addProcessor(niftyDisplay);*/
-                    /** Write text on the screen (HUD) */
-            /*
-            this.app.getGuiNode().detachAllChildren();
-            BitmapFont guiFont;
-            guiFont = assetManager.loadFont("Interface/Fonts/Default.fnt");
-            BitmapText helloText = new BitmapText(guiFont, false);
-            helloText.setSize(guiFont.getCharSet().getRenderedSize());
-            helloText.setText("F - Fireball");
-            helloText.setLocalTranslation(300, helloText.getLineHeight(), 0);
-            this.app.getGuiNode().attachChild(helloText);*/
-            }
+        }
     }
      
     private void initKeys() {
@@ -171,21 +136,37 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
         return playerId;
     }
     
-    public void addPlayer(long id, int group_id, String name) {
+     /**
+     * adds a player (sends message if server)
+     * @param id
+     * @param groupId
+     * @param name
+     * @param aiId
+     */
+    public void addPlayer(long id, int groupId, String name) {
+        //Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Adding player: {0}", id);
         if(isServer()) {
-            System.out.println("broadcasting new player");
-            syncManager.broadcast(new ServerAddPlayerMessage(id, group_id, name));
+            syncManager.broadcast(new ServerAddPlayerMessage(id, groupId, name));
         }
         PlayerData player = null;
-        player = new PlayerData(id, group_id, name);
+        player = new PlayerData(id, groupId, name);
         PlayerData.add(id, player);
+        if(!isServer()) {
+            ClientMain cm = (ClientMain) app;
+            cm.updateLobby();
+        }
     }
     
     public void removePlayer(long id) {
         if(isServer()) {
-            
+            syncManager.broadcast(new ServerRemovePlayerMessage(id));
+            //long entityId = PlayerData.getLongData(id, "entity_id");
         }
         PlayerData.remove(id);
+        if(!isServer()) {
+            ClientMain cm = (ClientMain) app;
+            cm.updateLobby();
+        }
     }
     /*
     public void addUserControl(Control control) {
@@ -228,7 +209,7 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
             //System.out.println(myGroupId);
             for(Iterator<PlayerData> it = PlayerData.getPlayers().iterator(); it.hasNext();) {
                 PlayerData playerData = it.next();
-                //System.out.println("name: " + playerData.getStringData("name"));
+                System.out.println("name: " + playerData.getStringData("name"));
             }
         }
     }    

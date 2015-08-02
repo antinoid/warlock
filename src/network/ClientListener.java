@@ -1,5 +1,10 @@
 package network;
 
+import network.messages.VectorMessage;
+import network.messages.ServerLoginMessage;
+import network.messages.ServerAddPlayerMessage;
+import network.messages.ClientLoginMessage;
+import network.messages.ChatMessage;
 import com.jme3.network.Client;
 import com.jme3.network.ClientStateListener;
 import com.jme3.network.Message;
@@ -8,6 +13,7 @@ import java.util.concurrent.Callable;
 import main.ClientMain;
 import main.Globals;
 import main.WorldManager;
+import network.messages.ServerRemovePlayerMessage;
 
 /**
  *
@@ -32,14 +38,13 @@ public class ClientListener implements MessageListener<Client>, ClientStateListe
                 ClientLoginMessage.class,
                 ServerLoginMessage.class,
                 ServerAddPlayerMessage.class,
-                ChatMessage.class);
-                
+                ChatMessage.class,
+                ServerRemovePlayerMessage.class);                
     }
     
     @Override
     public void messageReceived(Client source, Message message) {
         if (message instanceof ServerLoginMessage) {
-            //System.out.println("ServerLoginMessage received");
             final ServerLoginMessage msg = (ServerLoginMessage) message;
             if(!msg.rejected) {
                 System.out.println("server accepted login");
@@ -48,7 +53,7 @@ public class ClientListener implements MessageListener<Client>, ClientStateListe
                     public Void call() throws Exception {
                         worldManager.setMyPlayerId(msg.id);
                         worldManager.setMyGroupId(msg.group_id);
-                        app.startGame();
+                        app.lobby();
                         return null;
                     }
                 });
@@ -58,7 +63,9 @@ public class ClientListener implements MessageListener<Client>, ClientStateListe
                 
             
         } else if (message instanceof ServerAddPlayerMessage) {
-            app.updatePlayerData();
+            app.updateLobby();
+        } else if (message instanceof ServerRemovePlayerMessage) {
+            app.updateLobby();
         } else if (message instanceof VectorMessage) {            
             //System.out.println("VectorMessage received");
             VectorMessage vectorMessage = (VectorMessage) message;
@@ -66,7 +73,8 @@ public class ClientListener implements MessageListener<Client>, ClientStateListe
             //app.updatePlayerData();
         } else if (message instanceof ChatMessage) {
             ChatMessage msg = (ChatMessage) message;
-            app.updateChat(msg.getText());
+            // FIXME port to lobby chat
+            //app.updateChat(msg.getText());
         }
     }
 

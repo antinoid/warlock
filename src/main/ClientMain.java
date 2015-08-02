@@ -4,25 +4,26 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.network.Network;
 import com.jme3.network.NetworkClient;
 import com.jme3.niftygui.NiftyJmeDisplay;
-import com.jme3.scene.Spatial;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeContext;
 import de.lessvoid.nifty.Nifty;
 import de.lessvoid.nifty.controls.Label;
 import de.lessvoid.nifty.controls.TextField;
+import de.lessvoid.nifty.controls.dynamic.TextCreator;
 import de.lessvoid.nifty.controls.textfield.TextFieldControl;
 import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.elements.render.TextRenderer;
 import de.lessvoid.nifty.screen.Screen;
 import de.lessvoid.nifty.screen.ScreenController;
-import de.lessvoid.nifty.tools.Color;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
-import network.ChatMessage;
+import network.messages.ChatMessage;
 import network.ClientListener;
-import network.ServerAddPlayerMessage;
+import network.messages.ServerAddPlayerMessage;
+import network.messages.ServerRemovePlayerMessage;
 import network.sync.PhysicsSyncManager;
 
 /**
@@ -37,7 +38,6 @@ public class ClientMain extends SimpleApplication implements ScreenController {
     private Nifty nifty;
     private WorldManager worldManager;
     private ClientListener clientListener;
-    private Spatial player;
     //private boolean connected = false;
     private PhysicsSyncManager syncManager;
     private TextField serverIpTextfield;
@@ -52,7 +52,6 @@ public class ClientMain extends SimpleApplication implements ScreenController {
         AppSettings settings = new AppSettings(true);
         //settings.setFrameRate(Globals.FPS);
         //settings.setFullscreen(true);
-        Util.registerSerializers();
         app = new ClientMain();
         app.setSettings(settings);
         app.setPauseOnLostFocus(false);
@@ -60,7 +59,7 @@ public class ClientMain extends SimpleApplication implements ScreenController {
         app.setDisplayStatView(false);
         //app.start();
         app.start(JmeContext.Type.Display);
-    }
+    }    
     
     @Override
     public void simpleInitApp() {
@@ -70,8 +69,8 @@ public class ClientMain extends SimpleApplication implements ScreenController {
         client = Network.createClient();
         syncManager = new PhysicsSyncManager(app, client);
         syncManager.setMaxDelay(Globals.NETWORK_MAX_PHYSICS_DELAY);
-        // TODO
-        syncManager.setMessageTypes(ServerAddPlayerMessage.class);
+        syncManager.setMessageTypes(ServerAddPlayerMessage.class,
+                ServerRemovePlayerMessage.class);
         stateManager.attach(syncManager);
         worldManager = new WorldManager(app, rootNode, client);
         //stateManager.attach(new LoginScreen());
@@ -91,9 +90,10 @@ public class ClientMain extends SimpleApplication implements ScreenController {
         } catch (Exception e) {}*/
         //LoginScreen login = new LoginScreen(assetManager, inputManager, audioRenderer, guiViewPort);
         
-        Map map = new Map(assetManager, rootNode);
+        //Map map = new Map(assetManager, rootNode);
         clientListener = new ClientListener(app, client, worldManager);
-        syncManager.addObject(-1, worldManager);
+        syncManager.addObject(-1, worldManager);        
+        Util.registerSerializers();
     }
     
     private void startNifty() {
@@ -120,6 +120,10 @@ public class ClientMain extends SimpleApplication implements ScreenController {
         });
     }
     
+    public String getPlayerName() {
+        return System.getProperty("user.name");
+    }
+    
     /**
      * connect to server (called from gui)
      */
@@ -140,6 +144,10 @@ public class ClientMain extends SimpleApplication implements ScreenController {
         } catch (IOException ex) {
             setStatusText(ex.getMessage());
         }        
+    }
+    
+    public void lobby() {
+        nifty.gotoScreen("lobby");
     }
     
     /**
@@ -179,21 +187,72 @@ public class ClientMain extends SimpleApplication implements ScreenController {
         super.destroy();
     }
     
+    @Deprecated
     public void updatePlayerData() {
         System.out.println("updating PlayerData");
         enqueue(new Callable<Void>() {
 
             public Void call() throws Exception {
+                Screen screen = nifty.getScreen("lobby");
+                Element panel = screen.findElementByName("foreground").findElementByName("panel").findElementByName("mid");
                 List<PlayerData> players = PlayerData.getPlayers();
+                
+                for (Iterator<Element> it = new LinkedList<Element>(panel.getElements()).iterator(); it.hasNext();) {
+                    Element element = it.next();
+                    element.markForRemoval(); //TODO
+                }
+                TextCreator textCreator = new TextCreator("unknown player");
+                textCreator.setStyle("list-player");
                 for (Iterator<PlayerData> it = players.iterator(); it.hasNext();) {
-                    PlayerData data = it.next();
-                    
+                    //if(players.contains(cam))
+                    PlayerData playerData = it.next();
+                    textCreator.setText(playerData.getStringData("name"));
+                    textCreator.create(nifty, screen, panel);
                 }
                 return null;
             }
         });
     }   
 
+    public void updateLobby() {
+        System.out.println("updating PlayerData");
+        enqueue(new Callable<Void>() {
+
+            public Void call() throws Exception {
+                Screen screen = nifty.getScreen("lobby");
+                Element panel = screen.findElementByName("foreground").findElementByName("panel").findElementByName("mid");
+                TextCreator textCreator = new TextCreator("unknown player");                
+                textCreator.setStyle("list-player");
+                
+                List<Element> elements= panel.getElements();
+                List<PlayerData> players = PlayerData.getPlayers();
+                
+                for (Iterator<Element> it = elements.iterator(); it.hasNext();) {
+                    Element element = it.next();
+                    boolean mark = true;
+                    for(Iterator<PlayerData> it1 = players.iterator(); it1.hasNext();) {
+                        PlayerData playerData = it1.next();
+                        if(playerData.getId() == Long.valueOf(element.getId())) {
+                            mark = false;
+                        }                        
+                    }
+                    if(mark)
+                        element.markForRemoval();
+                }
+                 
+                for (Iterator<PlayerData> it2 = players.iterator(); it2.hasNext();) {
+                    PlayerData playerData = it2.next();
+                    if(!elements.contains(panel.findElementByName(String.valueOf(playerData.getId())))) {
+                        textCreator.setId(String.valueOf(playerData.getId()));
+                        textCreator.setText(playerData.getStringData("name"));
+                        textCreator.create(nifty, screen, panel);
+                    }                    
+                }        
+                return null;
+            }
+        });
+    }  
+        
     public void updateChat(String text) {
         if(chatIndex < chatLabels.length) { 
             chatLabels[chatIndex].setText(text);            
@@ -202,15 +261,11 @@ public class ClientMain extends SimpleApplication implements ScreenController {
             for(int i = 0; i < chatLabels.length - 1; i++) {
                 chatLabels[i].setText(chatLabels[i+1].getText());
             }
-            chatLabels[chatLabels.length - 1].setText(player + ": " + text);
+            chatLabels[chatLabels.length - 1].setText(text);
         }
     }
     
     public void bind(Nifty nifty, Screen screen) {
-
-       // serverIpTextfield = screen.findNiftyControl("IPTextfield", TextField.class);
-        //portTextfield = screen.findNiftyControl("PortTextfield", TextField.class);
-        //nameTextfield = screen.findNiftyControl("NameTextfield", TextField.class);
     }
 
     public void onStartScreen() {

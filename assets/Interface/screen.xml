@@ -2,6 +2,7 @@
 <nifty>
     <useControls filename="nifty-default-controls.xml"/>
     <useStyles filename="nifty-default-styles.xml"/>
+    <useStyles filename="Interface/Styles/styles.xml"/>
     <screen id="start" controller="main.ClientMain">
         <layer id="background" childLayout="absolute" backgroundImage="Interface/Pics/background.jpeg"/>
         <layer id="foreground" childLayout="center" backgroundColor="#77777785">
@@ -15,13 +16,13 @@
 					<panel id="right" childLayout="center" width="50%" align="right" height="100%">
 						<control name="textfield" id="IPTextfield" width="76px" x="26" y="15" valign="top" text="localhost" height="24px"/>
 						<control name="textfield" id="PortTextfield" width="50%" text="6143"/>
-						<control name="textfield" id="NameTextfield" width="50%" valign="bottom" text="Hans"/>
+						<control name="textfield" id="NameTextfield" width="50%" valign="bottom" text="${CALL.getPlayerName()}"/>
 					</panel>
 				</panel>
 				<panel id="loginmid" childLayout="overlay" height="19%" padding="5px" marginTop="5px">
 					<control name="button" label="Login" id="LoginButton" align="center" visibleToMouse="true">   
-                        <interact onClick="login()"/>
-                    </control> 
+                                                <interact onClick="login()"/>
+                                        </control> 
 					
 				</panel>
                 <panel id="loginbot" childLayout="center" height="19%" padding="5px" marginTop="5px">
@@ -32,6 +33,22 @@
                     </text>
                 </panel>
             </panel>
+        </layer>
+    </screen>
+    <screen id="lobby" controller="main.ClientMain">
+        <layer id="background" childLayout="absolute" backgroundImage="Interface/Pics/background.jpeg"/>
+        <layer id="foreground" childLayout="center" backgroundColor="#77777785">
+                <panel id="panel" childLayout="vertical" backgroundColor="#000A" width="95%" height="95%">
+                    <panel id="top" childLayout="center" height="10%">
+                        <text style="list-player" text="Players"/>
+                    </panel>
+                        <panel id="mid" backgroundColor="#0000"  childLayout="vertical" height="73%" padding="3px"/>
+                        <panel id="bottom" childLayout="overlay" height="25%" padding="5px" marginTop="5px">
+                                <control name="button" label="Login" id="LoginButton" align="center" visibleToMouse="true">
+                                        <interact onClick="startGame()"/>
+                                </control>
+                        </panel>
+                </panel>
         </layer>
     </screen>
     <screen id="hud" controller="main.ClientMain">

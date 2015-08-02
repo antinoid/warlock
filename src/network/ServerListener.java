@@ -1,5 +1,10 @@
 package network;
 
+import network.messages.VectorMessage;
+import network.messages.ServerLoginMessage;
+import network.messages.ServerAddPlayerMessage;
+import network.messages.ClientLoginMessage;
+import network.messages.ChatMessage;
 import com.jme3.math.Vector3f;
 import com.jme3.network.ConnectionListener;
 import com.jme3.network.HostedConnection;
@@ -8,9 +13,12 @@ import com.jme3.network.MessageListener;
 import com.jme3.network.Server;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import main.PlayerData;
 import main.ServerMain;
 import main.WorldManager;
+import network.messages.ServerRemovePlayerMessage;
 
 /**
  *
@@ -26,7 +34,6 @@ public class ServerListener implements MessageListener<HostedConnection>, Connec
     public ServerListener(ServerMain app, Server server, WorldManager worldManager) {
         this.app = app;
         this.server = server;
-        //this.worldManager = app.getStateManager().getState(WorldManager.class);
         this.worldManager = worldManager;
         server.addConnectionListener(this);
         server.addMessageListener(this,
@@ -34,7 +41,8 @@ public class ServerListener implements MessageListener<HostedConnection>, Connec
                 ClientLoginMessage.class,
                 ServerLoginMessage.class,
                 ServerAddPlayerMessage.class,
-                ChatMessage.class);
+                ChatMessage.class,
+                ServerRemovePlayerMessage.class);
     }
     
     @Override
@@ -68,14 +76,12 @@ public class ServerListener implements MessageListener<HostedConnection>, Connec
     public void messageReceived(HostedConnection source, Message message) {
         
         if ( message instanceof ClientLoginMessage) {
-            System.out.println("ClientLoginMessage received");
             final ClientLoginMessage msg = (ClientLoginMessage) message;
-            final int clientId = (int) source.getId();
-            /* TEST
+            final int clientId = (int) source.getId();            
             if (!ServerClientData.exists(clientId)) {
-                Logger.getLogger(ServerNetListener.class.getName()).log(Level.WARNING, "Receiving join message from unknown client");
+                Logger.getLogger(ServerListener.class.getName()).log(Level.WARNING, "Receiving join message from unknown client");
                 return;
-            }*/
+            }
             final long newPlayerId = PlayerData.getNew(msg.name);
             ServerClientData.setConnected(clientId, true);
             ServerClientData.setPlayerId(clientId, newPlayerId);
@@ -90,16 +96,18 @@ public class ServerListener implements MessageListener<HostedConnection>, Connec
                     PlayerData.setData(newPlayerId, "client_id", clientId);
                     for(Iterator<PlayerData> it = PlayerData.getPlayers().iterator(); it.hasNext();) {
                         PlayerData playerData = it.next();
+                        //worldManager.getSyncManager().send(clientId, new ServerAddPlayerMessage(playerData.getId(), playerData.getIntData("client_id"), playerData.getStringData("name")));
+                        
                         if(playerData.getId() != newPlayerId) {
                             worldManager.getSyncManager().send(clientId, new ServerAddPlayerMessage(playerData.getId(), playerData.getIntData("client_id"), playerData.getStringData("name")));
-                            server.getConnection(playerData.getIntData("client_id")).send(new ChatMessage(msg.name + " joined the game"));
+                            // TODO check
+                            //server.getConnection(playerData.getIntData("client_id")).send(new ChatMessage(msg.name + " joined the game"));
                         }
                     }
                     return null;
                 }
             });
-        } else if ( message instanceof VectorMessage) {            
-            System.out.println("VectorMessage received");
+        } else if ( message instanceof VectorMessage) {
             VectorMessage msg = (VectorMessage) message;
             msg.setVector(new Vector3f(2, 2, 2));
             source.send(msg);
@@ -108,8 +116,4 @@ public class ServerListener implements MessageListener<HostedConnection>, Connec
             server.broadcast(msg);
         }
     }
-
-
-
- 
 }

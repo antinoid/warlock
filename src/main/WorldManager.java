@@ -30,7 +30,7 @@ import network.messages.VectorMessage;
 import network.sync.PhysicsSyncManager;
 
 /**
- *
+ * entity managing class
  * @author d
  */
 public class WorldManager extends AbstractAppState implements ActionListener, AnalogListener {
@@ -45,6 +45,7 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
     private long myPlayerId;
     private long myGroupId;
     private PhysicsSyncManager syncManager;
+    private Map map;
     
     public WorldManager(Application app, Node rootNode, Server server) {
         this.app = (ServerMain) app;
@@ -168,6 +169,12 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
             cm.updateLobby();
         }
     }
+    
+    public void loadMap() {
+        // TODO Map ugly
+        map = new Map(assetManager, rootNode);
+    }
+    
     /*
     public void addUserControl(Control control) {
         userControls.add(control);

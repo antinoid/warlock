@@ -13,6 +13,7 @@ import de.lessvoid.nifty.controls.dynamic.TextCreator;
 import de.lessvoid.nifty.controls.textfield.TextFieldControl;
 import de.lessvoid.nifty.elements.Element;
 import de.lessvoid.nifty.elements.render.TextRenderer;
+import de.lessvoid.nifty.layout.align.HorizontalAlign;
 import de.lessvoid.nifty.screen.Screen;
 import de.lessvoid.nifty.screen.ScreenController;
 import java.io.IOException;
@@ -24,6 +25,7 @@ import network.messages.ChatMessage;
 import network.ClientListener;
 import network.messages.ServerAddPlayerMessage;
 import network.messages.ServerRemovePlayerMessage;
+import network.messages.StartGameMessage;
 import network.sync.PhysicsSyncManager;
 
 /**
@@ -49,9 +51,11 @@ public class ClientMain extends SimpleApplication implements ScreenController {
     private int chatIndex = 0;   
     
     public static void main(String[] args) {
-        AppSettings settings = new AppSettings(true);
+        AppSettings settings = new AppSettings(true);               
+        Util.registerSerializers();
         //settings.setFrameRate(Globals.FPS);
         //settings.setFullscreen(true);
+        
         app = new ClientMain();
         app.setSettings(settings);
         app.setPauseOnLostFocus(false);
@@ -92,8 +96,9 @@ public class ClientMain extends SimpleApplication implements ScreenController {
         
         //Map map = new Map(assetManager, rootNode);
         clientListener = new ClientListener(app, client, worldManager);
-        syncManager.addObject(-1, worldManager);        
-        Util.registerSerializers();
+        client.addClientStateListener(clientListener);
+        client.addMessageListener(clientListener, Util.CLIENT_MESSAGES);
+        syncManager.addObject(-1, worldManager); 
     }
     
     private void startNifty() {
@@ -106,6 +111,7 @@ public class ClientMain extends SimpleApplication implements ScreenController {
             e.printStackTrace();
         }
         statusText = nifty.getScreen("start").findElementByName("foreground").findElementByName("loginpanel").findElementByName("loginbot").findElementByName("status_text").getRenderer(TextRenderer.class);
+        statusText.setTextHAlign(HorizontalAlign.center);
         guiViewPort.addProcessor(niftyDisplay);
         //setStatusText("idle");
     }
@@ -155,30 +161,53 @@ public class ClientMain extends SimpleApplication implements ScreenController {
      */
     public void sendChatMessage() {
         try {
-        Element chatInput = nifty.getScreen("hud").findElementByName("layer").findElementByName("panel").findElementByName("input_panel").findElementByName("chat_textfield");
-        String text = chatInput.getControl(TextFieldControl.class).getText();
-        chatInput.getControl(TextFieldControl.class).setText("");
-        ChatMessage msg = new ChatMessage(name + ": " + text);
-        client.send(msg);
+            Element chatInput = nifty.getScreen("hud").findElementByName("layer").findElementByName("panel").findElementByName("input_panel").findElementByName("chat_textfield");
+            String text = chatInput.getControl(TextFieldControl.class).getText();
+            chatInput.getControl(TextFieldControl.class).setText("");
+            ChatMessage msg = new ChatMessage(name + ": " + text);
+            client.send(msg);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
     
-    public void startGame() {            
-        try {
-            nifty.gotoScreen("hud");
-            //nifty.fromXml("Interface/gamescreen.xml", "gamescreen", this);            
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
+    
+    /**
+     * called from gui
+     */
+    public void startGame() {
+        client.send(new StartGameMessage());
+    }
+    
+    public void loadLevel() {
+        final TextRenderer statusTextRenderer;// = nifty.getScreen("loading")
+
+        new Thread(new Runnable() {
+
+            public void run() {
+                try {
+                    enqueue(new Callable<Void>() {
+
+                        public Void call() throws Exception {
+                            //nifty.gotoScreen("load_level");
+                            //statusText.setText("Loading Terrain..");
+                            return null;
+                        }
+                    }).get();
+                    worldManager.loadMap();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+        
+        nifty.gotoScreen("hud");        
+        stateManager.attach(worldManager);
         for(int i = 0; i < chatLabels.length; i++) {
             chatLabels[i] = nifty.getScreen("hud").findNiftyControl("chat_label" + (i+1), Label.class);
-        }
-        stateManager.attach(worldManager);
+        }  
     }
-    
     @Override
     public void destroy() {
         try {
@@ -215,7 +244,6 @@ public class ClientMain extends SimpleApplication implements ScreenController {
     }   
 
     public void updateLobby() {
-        System.out.println("updating PlayerData");
         enqueue(new Callable<Void>() {
 
             public Void call() throws Exception {
@@ -253,16 +281,22 @@ public class ClientMain extends SimpleApplication implements ScreenController {
         });
     }  
         
-    public void updateChat(String text) {
-        if(chatIndex < chatLabels.length) { 
-            chatLabels[chatIndex].setText(text);            
-            chatIndex++;            
-        } else {
-            for(int i = 0; i < chatLabels.length - 1; i++) {
-                chatLabels[i].setText(chatLabels[i+1].getText());
+    public void updateChat(final String text) {        
+        enqueue(new Callable<Void>() {
+
+            public Void call() throws Exception {
+                if(chatIndex < chatLabels.length) {
+                    chatLabels[chatIndex].setText(text);
+                    chatIndex++;
+                } else {
+                    for(int i = 0; i < chatLabels.length - 1; i++) {
+                        chatLabels[i].setText(chatLabels[i+1].getText());
+                    }
+                    chatLabels[chatLabels.length - 1].setText(text);
+                }
+                return null;
             }
-            chatLabels[chatLabels.length - 1].setText(text);
-        }
+        });
     }
     
     public void bind(Nifty nifty, Screen screen) {

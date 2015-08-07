@@ -19,6 +19,7 @@ import main.PlayerData;
 import main.ServerMain;
 import main.WorldManager;
 import network.messages.ServerRemovePlayerMessage;
+import network.messages.StartGameMessage;
 
 /**
  *
@@ -35,6 +36,7 @@ public class ServerListener implements MessageListener<HostedConnection>, Connec
         this.app = app;
         this.server = server;
         this.worldManager = worldManager;
+        /* test - remove
         server.addConnectionListener(this);
         server.addMessageListener(this,
                 VectorMessage.class,
@@ -42,7 +44,9 @@ public class ServerListener implements MessageListener<HostedConnection>, Connec
                 ServerLoginMessage.class,
                 ServerAddPlayerMessage.class,
                 ChatMessage.class,
-                ServerRemovePlayerMessage.class);
+                ServerRemovePlayerMessage.class,
+                StartGameMessage.class);
+                */
     }
     
     @Override
@@ -107,13 +111,16 @@ public class ServerListener implements MessageListener<HostedConnection>, Connec
                     return null;
                 }
             });
+        } else if (message instanceof StartGameMessage) {
+            StartGameMessage msg = (StartGameMessage) message;
+            server.broadcast(msg);        
+        } else if (message instanceof ChatMessage) {
+            ChatMessage msg = (ChatMessage) message;
+            server.broadcast(msg);
         } else if ( message instanceof VectorMessage) {
             VectorMessage msg = (VectorMessage) message;
             msg.setVector(new Vector3f(2, 2, 2));
             source.send(msg);
-        } else if (message instanceof ChatMessage) {
-            ChatMessage msg = (ChatMessage) message;
-            server.broadcast(msg);
         }
     }
 }

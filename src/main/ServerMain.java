@@ -34,13 +34,14 @@ public class ServerMain extends SimpleApplication {
         syncManager = new PhysicsSyncManager(app, server);
         syncManager.setMaxDelay(Globals.NETWORK_MAX_PHYSICS_DELAY);
         // TODO
-        syncManager.setMessageTypes(ServerAddPlayerMessage.class);
+        syncManager.setMessageTypes(Util.SERVER_SYNC_MESSAGES);
         stateManager.attach(syncManager);
         syncManager.addObject(-1, worldManager);
         worldManager = new WorldManager(app, rootNode, server);
         stateManager.attach(worldManager);
         serverListener = new ServerListener(app, server, worldManager);
-        
+        server.addConnectionListener(serverListener);
+        server.addMessageListener(serverListener, Util.SERVER_MESSAGES);
     }
     
     @Override

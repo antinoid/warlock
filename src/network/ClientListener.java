@@ -14,6 +14,7 @@ import main.ClientMain;
 import main.Globals;
 import main.WorldManager;
 import network.messages.ServerRemovePlayerMessage;
+import network.messages.StartGameMessage;
 
 /**
  *
@@ -27,19 +28,10 @@ public class ClientListener implements MessageListener<Client>, ClientStateListe
     private String name = "";
     private WorldManager worldManager;
     
-    //public ClientListener newClientListener(ClientMain app);
     public ClientListener(ClientMain app, Client client, WorldManager worldManager) {
         this.app = app;
         this.client = client;
         this.worldManager = worldManager;
-        client.addClientStateListener(this);
-        client.addMessageListener(this,
-                VectorMessage.class,
-                ClientLoginMessage.class,
-                ServerLoginMessage.class,
-                ServerAddPlayerMessage.class,
-                ChatMessage.class,
-                ServerRemovePlayerMessage.class);                
     }
     
     @Override
@@ -59,22 +51,19 @@ public class ClientListener implements MessageListener<Client>, ClientStateListe
                 });
             } else {
                 System.out.println("server rejected login");
-            }
-                
-            
+            }            
         } else if (message instanceof ServerAddPlayerMessage) {
             app.updateLobby();
         } else if (message instanceof ServerRemovePlayerMessage) {
             app.updateLobby();
-        } else if (message instanceof VectorMessage) {            
-            //System.out.println("VectorMessage received");
-            VectorMessage vectorMessage = (VectorMessage) message;
-            //System.out.println(vectorMessage.getVector());
-            //app.updatePlayerData();
-        } else if (message instanceof ChatMessage) {
+        } else if (message instanceof StartGameMessage) {
+            StartGameMessage msg = (StartGameMessage) message;
+            app.loadLevel();
+        }
+        else if (message instanceof ChatMessage) {
             ChatMessage msg = (ChatMessage) message;
             // FIXME port to lobby chat
-            //app.updateChat(msg.getText());
+            app.updateChat(msg.getText());
         }
     }
 

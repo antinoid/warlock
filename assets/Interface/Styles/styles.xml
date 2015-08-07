@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <nifty-styles>
   <style id="list-player" base="nifty-label">
-    <attributes font="aurulent-sans-16.fnt" color="#ff0f" width="100%" align="left" textVAlign="center" textHAlign="center" />
+    <attributes font="aurulent-sans-16.fnt" color="#f00f" width="100%" align="left" textVAlign="center" textHAlign="center" />
+  </style>
+  <style id="chat-entry" base="nifty-label">
+      <attributes font="aurulent-sans-16.fnt" color="#ffff" width="100%" align="left" textVAlign="center" textHAlign="left" />
   </style>
 </nifty-styles>

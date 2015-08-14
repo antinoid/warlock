@@ -41,25 +41,24 @@ import java.util.concurrent.Callable;
  * @author normenhansen
  */
 @Serializable()
-public class ServerAddPlayerMessage extends PhysicsSyncMessage{
+public class AddPlayerMessage extends PhysicsSyncMessage{
     public long playerId;
     public String name;
-    public int group_id;
+    //public int group_id;
 
-    public ServerAddPlayerMessage() {
+    public AddPlayerMessage() {
     }
 
-    public ServerAddPlayerMessage(long id, int group_id, String name) {
+    public AddPlayerMessage(long id, String name) {
         this.syncId = -1;
         this.playerId = id;
         this.name = name;
-        this.group_id = group_id;
+        //this.group_id = group_id;
     }
 
     @Override
     public void applyData(Object object) {
-        System.out.println("updating world manager");
         WorldManager manager = (WorldManager) object;
-        manager.addPlayer(playerId, group_id, name);
+        manager.addPlayer(playerId, name);
     }
 }

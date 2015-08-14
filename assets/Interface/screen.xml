@@ -15,7 +15,7 @@
 					</panel>
 					<panel id="right" childLayout="center" width="50%" align="right" height="100%">
 						<control name="textfield" id="IPTextfield" width="76px" x="26" y="15" valign="top" text="localhost" height="24px"/>
-						<control name="textfield" id="PortTextfield" width="50%" text="6143"/>
+						<control name="textfield" id="PortTextfield" width="50%" text="16222"/>
 						<control name="textfield" id="NameTextfield" width="50%" valign="bottom" text="${CALL.getPlayerName()}"/>
 					</panel>
 				</panel>

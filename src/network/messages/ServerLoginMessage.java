@@ -12,17 +12,17 @@ public class ServerLoginMessage extends AbstractMessage {
     
     public boolean rejected;
     public long id;
-    public int group_id;
+    //public int group_id;
     public String name;
     
     public ServerLoginMessage() {
         
     }
     
-    public ServerLoginMessage(boolean rejected, long id, int group_id, String name) {
+    public ServerLoginMessage(boolean rejected, long id, String name) {
         this.rejected = rejected;
         this.id = id;
-        this.group_id = group_id;
+        //this.group_id = group_id;
         this.name = name;
     }
 

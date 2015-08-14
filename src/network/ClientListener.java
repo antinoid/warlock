@@ -1,8 +1,7 @@
 package network;
 
-import network.messages.VectorMessage;
 import network.messages.ServerLoginMessage;
-import network.messages.ServerAddPlayerMessage;
+import network.messages.AddPlayerMessage;
 import network.messages.ClientLoginMessage;
 import network.messages.ChatMessage;
 import com.jme3.network.Client;
@@ -13,7 +12,7 @@ import java.util.concurrent.Callable;
 import main.ClientMain;
 import main.Globals;
 import main.WorldManager;
-import network.messages.ServerRemovePlayerMessage;
+import network.messages.RemovePlayerMessage;
 import network.messages.StartGameMessage;
 
 /**
@@ -34,6 +33,16 @@ public class ClientListener implements MessageListener<Client>, ClientStateListe
         this.worldManager = worldManager;
     }
     
+    public void clientConnected(Client c) {
+        setStatusText("connected - requesting login..");
+        ClientLoginMessage msg = new ClientLoginMessage(name, Globals.VERSION);
+        client.send(msg);
+    }
+
+    public void clientDisconnected(Client c, DisconnectInfo info) {
+        System.out.println("kicked: " + info.reason);
+    }
+    
     @Override
     public void messageReceived(Client source, Message message) {
         if (message instanceof ServerLoginMessage) {
@@ -44,7 +53,7 @@ public class ClientListener implements MessageListener<Client>, ClientStateListe
                     
                     public Void call() throws Exception {
                         worldManager.setMyPlayerId(msg.id);
-                        worldManager.setMyGroupId(msg.group_id);
+                        //worldManager.setMyGroupId(msg.group_id);
                         app.lobby();
                         return null;
                     }
@@ -52,9 +61,9 @@ public class ClientListener implements MessageListener<Client>, ClientStateListe
             } else {
                 System.out.println("server rejected login");
             }            
-        } else if (message instanceof ServerAddPlayerMessage) {
+        } else if (message instanceof AddPlayerMessage) {
             app.updateLobby();
-        } else if (message instanceof ServerRemovePlayerMessage) {
+        } else if (message instanceof RemovePlayerMessage) {
             app.updateLobby();
         } else if (message instanceof StartGameMessage) {
             StartGameMessage msg = (StartGameMessage) message;
@@ -63,18 +72,9 @@ public class ClientListener implements MessageListener<Client>, ClientStateListe
         else if (message instanceof ChatMessage) {
             ChatMessage msg = (ChatMessage) message;
             // FIXME port to lobby chat
+            // crash when player leaves lobby
             app.updateChat(msg.getText());
         }
-    }
-
-    public void clientConnected(Client c) {
-        setStatusText("connected - requesting login..");
-        ClientLoginMessage msg = new ClientLoginMessage(name, Globals.VERSION);
-        client.send(msg);
-    }
-
-    public void clientDisconnected(Client c, DisconnectInfo info) {
-        System.out.println("kicked: " + info.reason);
     }
     
     private void setStatusText(String text) {

@@ -51,6 +51,7 @@ import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import main.ClientMain;
+import network.messages.AddEntityMessage;
 
 /**
  * <p>Handles syncing of physics enabled server/client games. Puts messages in a queue

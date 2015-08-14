@@ -100,8 +100,8 @@ public class PlayerData {
 
     public PlayerData(long id) {
         this.id = id;
+        System.out.println("new PD1");
     }
-
 
     /**
      * Object implementation of PlayerData
@@ -110,14 +110,17 @@ public class PlayerData {
         this.id = id;
         setData("name", name);
         setData("entity_id", (long) -1);
+        System.out.println("new PD2");
     }
 
+    /*
     public PlayerData(long id, int groupId, String name) {
         this.id = id;
         setData("group_id", groupId);
         setData("name", name);
         setData("entity_id", (long) -1);
-    }
+        System.out.println("new PD3");
+    }*/
 
     public long getId() {
         return id;

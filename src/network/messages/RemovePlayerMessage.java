@@ -9,13 +9,13 @@ import network.sync.PhysicsSyncMessage;
  * @author d
  */
 @Serializable()
-public class ServerRemovePlayerMessage extends PhysicsSyncMessage {
+public class RemovePlayerMessage extends PhysicsSyncMessage {
 
     public long playerId;
     
-    public ServerRemovePlayerMessage() {}
+    public RemovePlayerMessage() {}
     
-    public ServerRemovePlayerMessage(long playerId) {
+    public RemovePlayerMessage(long playerId) {
         this.syncId = -1;
         this.playerId = playerId;
     }

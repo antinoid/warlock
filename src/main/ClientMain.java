@@ -23,8 +23,6 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import network.messages.ChatMessage;
 import network.ClientListener;
-import network.messages.ServerAddPlayerMessage;
-import network.messages.ServerRemovePlayerMessage;
 import network.messages.StartGameMessage;
 import network.sync.PhysicsSyncManager;
 
@@ -73,32 +71,13 @@ public class ClientMain extends SimpleApplication implements ScreenController {
         client = Network.createClient();
         syncManager = new PhysicsSyncManager(app, client);
         syncManager.setMaxDelay(Globals.NETWORK_MAX_PHYSICS_DELAY);
-        syncManager.setMessageTypes(ServerAddPlayerMessage.class,
-                ServerRemovePlayerMessage.class);
+        syncManager.setMessageTypes(Util.CLIENT_SYNC_MESSAGES);
         stateManager.attach(syncManager);
         worldManager = new WorldManager(app, rootNode, client);
-        //stateManager.attach(new LoginScreen());
-        //inputManager.addListener(new, mappingNames);
-        //worldManager.addUserControl(new InputControl(inputManager, rootNode, cam));
-        //listenerManager = new ClientListener();
-        //stateManager.attach(new WorldManager(app, rootNode, client));
-        /*
-        stateManager.attach(new LoginScreen());
-        Message message = new VectorMessage(new Vector2f(0, 0));
-        try {
-            client = Network.connectToServer(Globals.DEFAULT_SERVER, Globals.DEFAULT_PORT);
-            client.start();
-            client.addMessageListener(new ClientListener(),
-                    VectorMessage.class);
-            client.send(message);
-        } catch (Exception e) {}*/
-        //LoginScreen login = new LoginScreen(assetManager, inputManager, audioRenderer, guiViewPort);
-        
-        //Map map = new Map(assetManager, rootNode);
+        syncManager.addObject(-1, worldManager); 
         clientListener = new ClientListener(app, client, worldManager);
         client.addClientStateListener(clientListener);
         client.addMessageListener(clientListener, Util.CLIENT_MESSAGES);
-        syncManager.addObject(-1, worldManager); 
     }
     
     private void startNifty() {
@@ -243,7 +222,7 @@ public class ClientMain extends SimpleApplication implements ScreenController {
         });
     }   
 
-    public void updateLobby() {
+    public void updateLobby() {        
         enqueue(new Callable<Void>() {
 
             public Void call() throws Exception {
@@ -254,7 +233,8 @@ public class ClientMain extends SimpleApplication implements ScreenController {
                 
                 List<Element> elements= panel.getElements();
                 List<PlayerData> players = PlayerData.getPlayers();
-                
+                System.out.println(players.size());
+                // 
                 for (Iterator<Element> it = elements.iterator(); it.hasNext();) {
                     Element element = it.next();
                     boolean mark = true;

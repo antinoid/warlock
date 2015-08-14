@@ -4,7 +4,6 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.network.Network;
 import com.jme3.network.Server;
 import com.jme3.system.JmeContext;
-import network.messages.ServerAddPlayerMessage;
 import network.ServerListener;
 import network.sync.PhysicsSyncManager;
 
@@ -18,6 +17,7 @@ public class ServerMain extends SimpleApplication {
     private Server server;
     private ServerListener serverListener;
     private WorldManager worldManager;
+    private ServerGameManager gameManager;
     private PhysicsSyncManager syncManager;
     
     public static void main(String[] args) {
@@ -33,13 +33,14 @@ public class ServerMain extends SimpleApplication {
         } catch (Exception e) {}
         syncManager = new PhysicsSyncManager(app, server);
         syncManager.setMaxDelay(Globals.NETWORK_MAX_PHYSICS_DELAY);
-        // TODO
         syncManager.setMessageTypes(Util.SERVER_SYNC_MESSAGES);
         stateManager.attach(syncManager);
-        syncManager.addObject(-1, worldManager);
         worldManager = new WorldManager(app, rootNode, server);
         stateManager.attach(worldManager);
-        serverListener = new ServerListener(app, server, worldManager);
+        syncManager.addObject(-1, worldManager);
+        gameManager = new ServerGameManager();
+        stateManager.attach(gameManager);
+        serverListener = new ServerListener(app, server, worldManager, gameManager);
         server.addConnectionListener(serverListener);
         server.addMessageListener(serverListener, Util.SERVER_MESSAGES);
     }

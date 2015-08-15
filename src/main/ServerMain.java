@@ -48,8 +48,6 @@ public class ServerMain extends SimpleApplication {
     @Override
     public void simpleUpdate(float tpf) {
         //for(HostedConnection con : server.getConnections()) {
-            
-       
     }
     
     @Override

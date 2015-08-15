@@ -62,7 +62,4 @@ public class Map {
         terrain.setLocalScale(2f, 1f, 2f);  
         rootNode.attachChild(terrain);
     }
-    
-
-   
 }

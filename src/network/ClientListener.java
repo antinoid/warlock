@@ -1,5 +1,9 @@
 package network;
 
+import network.messages.ServerLoginMessage;
+import network.messages.AddPlayerMessage;
+import network.messages.ClientLoginMessage;
+import network.messages.ChatMessage;
 import com.jme3.network.Client;
 import com.jme3.network.ClientStateListener;
 import com.jme3.network.Message;
@@ -8,6 +12,8 @@ import java.util.concurrent.Callable;
 import main.ClientMain;
 import main.Globals;
 import main.WorldManager;
+import network.messages.RemovePlayerMessage;
+import network.messages.StartGameMessage;
 
 /**
  *
@@ -21,55 +27,12 @@ public class ClientListener implements MessageListener<Client>, ClientStateListe
     private String name = "";
     private WorldManager worldManager;
     
-    //public ClientListener newClientListener(ClientMain app);
     public ClientListener(ClientMain app, Client client, WorldManager worldManager) {
         this.app = app;
         this.client = client;
         this.worldManager = worldManager;
-        client.addClientStateListener(this);
-        client.addMessageListener(this,
-                VectorMessage.class,
-                ClientLoginMessage.class,
-                ServerLoginMessage.class,
-                ServerAddPlayerMessage.class,
-                ChatMessage.class);
-                
     }
     
-    @Override
-    public void messageReceived(Client source, Message message) {
-        if (message instanceof ServerLoginMessage) {
-            //System.out.println("ServerLoginMessage received");
-            final ServerLoginMessage msg = (ServerLoginMessage) message;
-            if(!msg.rejected) {
-                System.out.println("server accepted login");
-                app.enqueue(new Callable<Void>() {
-                    
-                    public Void call() throws Exception {
-                        worldManager.setMyPlayerId(msg.id);
-                        worldManager.setMyGroupId(msg.group_id);
-                        app.startGame();
-                        return null;
-                    }
-                });
-            } else {
-                System.out.println("server rejected login");
-            }
-                
-            
-        } else if (message instanceof ServerAddPlayerMessage) {
-            app.updatePlayerData();
-        } else if (message instanceof VectorMessage) {            
-            //System.out.println("VectorMessage received");
-            VectorMessage vectorMessage = (VectorMessage) message;
-            //System.out.println(vectorMessage.getVector());
-            //app.updatePlayerData();
-        } else if (message instanceof ChatMessage) {
-            ChatMessage msg = (ChatMessage) message;
-            app.updateChat(msg.getText());
-        }
-    }
-
     public void clientConnected(Client c) {
         setStatusText("connected - requesting login..");
         ClientLoginMessage msg = new ClientLoginMessage(name, Globals.VERSION);
@@ -78,6 +41,40 @@ public class ClientListener implements MessageListener<Client>, ClientStateListe
 
     public void clientDisconnected(Client c, DisconnectInfo info) {
         System.out.println("kicked: " + info.reason);
+    }
+    
+    @Override
+    public void messageReceived(Client source, Message message) {
+        if (message instanceof ServerLoginMessage) {
+            final ServerLoginMessage msg = (ServerLoginMessage) message;
+            if(!msg.rejected) {
+                System.out.println("server accepted login");
+                app.enqueue(new Callable<Void>() {
+                    
+                    public Void call() throws Exception {
+                        worldManager.setMyPlayerId(msg.id);
+                        //worldManager.setMyGroupId(msg.group_id);
+                        app.lobby();
+                        return null;
+                    }
+                });
+            } else {
+                System.out.println("server rejected login");
+            }            
+        } else if (message instanceof AddPlayerMessage) {
+            app.updateLobby();
+        } else if (message instanceof RemovePlayerMessage) {
+            app.updateLobby();
+        } else if (message instanceof StartGameMessage) {
+            StartGameMessage msg = (StartGameMessage) message;
+            app.loadLevel();
+        }
+        else if (message instanceof ChatMessage) {
+            ChatMessage msg = (ChatMessage) message;
+            // FIXME port to lobby chat
+            // crash when player leaves lobby
+            app.updateChat(msg.getText());
+        }
     }
     
     private void setStatusText(String text) {

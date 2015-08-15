@@ -1,5 +1,10 @@
 package network;
 
+import network.messages.VectorMessage;
+import network.messages.ServerLoginMessage;
+import network.messages.AddPlayerMessage;
+import network.messages.ClientLoginMessage;
+import network.messages.ChatMessage;
 import com.jme3.math.Vector3f;
 import com.jme3.network.ConnectionListener;
 import com.jme3.network.HostedConnection;
@@ -8,33 +13,30 @@ import com.jme3.network.MessageListener;
 import com.jme3.network.Server;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import main.PlayerData;
+import main.ServerGameManager;
 import main.ServerMain;
 import main.WorldManager;
+import network.messages.StartGameMessage;
 
 /**
  *
  * @author d
  */
-
 public class ServerListener implements MessageListener<HostedConnection>, ConnectionListener {
     
     ServerMain app;
     Server server;
     WorldManager worldManager;
+    ServerGameManager gameManager;
     
-    public ServerListener(ServerMain app, Server server, WorldManager worldManager) {
+    public ServerListener(ServerMain app, Server server, WorldManager worldManager, ServerGameManager gameManager) {
         this.app = app;
         this.server = server;
-        //this.worldManager = app.getStateManager().getState(WorldManager.class);
         this.worldManager = worldManager;
-        server.addConnectionListener(this);
-        server.addMessageListener(this,
-                VectorMessage.class,
-                ClientLoginMessage.class,
-                ServerLoginMessage.class,
-                ServerAddPlayerMessage.class,
-                ChatMessage.class);
+        this.gameManager = gameManager;
     }
     
     @Override
@@ -68,48 +70,53 @@ public class ServerListener implements MessageListener<HostedConnection>, Connec
     public void messageReceived(HostedConnection source, Message message) {
         
         if ( message instanceof ClientLoginMessage) {
-            System.out.println("ClientLoginMessage received");
             final ClientLoginMessage msg = (ClientLoginMessage) message;
-            final int clientId = (int) source.getId();
-            /* TEST
+            final int clientId = (int) source.getId();            
             if (!ServerClientData.exists(clientId)) {
-                Logger.getLogger(ServerNetListener.class.getName()).log(Level.WARNING, "Receiving join message from unknown client");
+                Logger.getLogger(ServerListener.class.getName()).log(Level.WARNING, "Receiving join message from unknown client");
                 return;
-            }*/
+            }
             final long newPlayerId = PlayerData.getNew(msg.name);
             ServerClientData.setConnected(clientId, true);
             ServerClientData.setPlayerId(clientId, newPlayerId);
-            System.out.println("new Player: " + msg.name);
-            ServerLoginMessage serverLoginMessage = new ServerLoginMessage(false, newPlayerId, clientId, msg.name);
+            ServerLoginMessage serverLoginMessage = new ServerLoginMessage(false, newPlayerId, msg.name);
             source.send(serverLoginMessage);
             // add player
             app.enqueue(new Callable<Void>() {
 
                 public Void call() throws Exception {
-                    worldManager.addPlayer(newPlayerId, clientId, msg.name);
+                    worldManager.addPlayer(newPlayerId, msg.name);
                     PlayerData.setData(newPlayerId, "client_id", clientId);
                     for(Iterator<PlayerData> it = PlayerData.getPlayers().iterator(); it.hasNext();) {
                         PlayerData playerData = it.next();
+                        //worldManager.getSyncManager().send(clientId, new ServerAddPlayerMessage(playerData.getId(), playerData.getIntData("client_id"), playerData.getStringData("name")));
+                        
                         if(playerData.getId() != newPlayerId) {
-                            worldManager.getSyncManager().send(clientId, new ServerAddPlayerMessage(playerData.getId(), playerData.getIntData("client_id"), playerData.getStringData("name")));
-                            server.getConnection(playerData.getIntData("client_id")).send(new ChatMessage(msg.name + " joined the game"));
+                            worldManager.getSyncManager().send(clientId, new AddPlayerMessage(playerData.getId(), playerData.getStringData("name")));
+                            // TODO check
+                            //server.getConnection(playerData.getIntData("client_id")).send(new ChatMessage(msg.name + " joined the game"));
                         }
                     }
                     return null;
                 }
             });
-        } else if ( message instanceof VectorMessage) {            
-            System.out.println("VectorMessage received");
-            VectorMessage msg = (VectorMessage) message;
-            msg.setVector(new Vector3f(2, 2, 2));
-            source.send(msg);
+        } else if (message instanceof StartGameMessage) {
+            StartGameMessage msg = (StartGameMessage) message;
+            app.enqueue(new Callable<Void>() {
+                
+                public Void call() {
+                    gameManager.startGame();
+                    return null;
+                }
+            });            
+            server.broadcast(msg);
         } else if (message instanceof ChatMessage) {
             ChatMessage msg = (ChatMessage) message;
             server.broadcast(msg);
+        } else if ( message instanceof VectorMessage) {
+            VectorMessage msg = (VectorMessage) message;
+            msg.setVector(new Vector3f(2, 2, 2));
+            source.send(msg);
         }
     }
-
-
-
- 
 }

@@ -6,6 +6,7 @@ import com.jme3.network.NetworkClient;
 import com.jme3.niftygui.NiftyJmeDisplay;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeContext;
+import control.CameraState;
 import de.lessvoid.nifty.Nifty;
 import de.lessvoid.nifty.controls.Label;
 import de.lessvoid.nifty.controls.TextField;
@@ -53,7 +54,7 @@ public class ClientMain extends SimpleApplication implements ScreenController {
         Util.registerSerializers();
         //settings.setFrameRate(Globals.FPS);
         //settings.setFullscreen(true);
-        
+        settings.setResolution(800, 600);
         app = new ClientMain();
         app.setSettings(settings);
         app.setPauseOnLostFocus(false);
@@ -78,6 +79,12 @@ public class ClientMain extends SimpleApplication implements ScreenController {
         clientListener = new ClientListener(app, client, worldManager);
         client.addClientStateListener(clientListener);
         client.addMessageListener(clientListener, Util.CLIENT_MESSAGES);
+        
+        stateManager.attach(new CameraState(inputManager, app));
+    }
+    
+    @Override
+    public void simpleUpdate(float tpf) {
     }
     
     private void startNifty() {

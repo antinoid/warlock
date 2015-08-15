@@ -104,10 +104,10 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
     private void initCamera(){
         if(!isServer()) {
         Camera cam = app.getCamera();
-        cam.setFrustumPerspective(50f, cam.getWidth() / cam.getHeight(), 1f, 1000f);
+        cam.setFrustumPerspective(45f, cam.getWidth() / cam.getHeight(), 1f, 1000f);
         cam.setLocation(new Vector3f(0f, 0f, 10f));
         cam.lookAt(new Vector3f(0f, -10f, 0f), Vector3f.UNIT_Y);
-            app.getFlyByCamera().setEnabled(true);
+            app.getFlyByCamera().setEnabled(false);
         }
     }
     

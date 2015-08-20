@@ -100,7 +100,6 @@ public class PlayerData {
 
     public PlayerData(long id) {
         this.id = id;
-        System.out.println("new PD1");
     }
 
     /**
@@ -110,7 +109,6 @@ public class PlayerData {
         this.id = id;
         setData("name", name);
         setData("entity_id", (long) -1);
-        System.out.println("new PD2");
     }
 
     /*

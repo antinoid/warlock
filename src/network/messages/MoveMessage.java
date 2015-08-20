@@ -15,7 +15,7 @@ public class MoveMessage extends PhysicsSyncMessage {
 
     public Vector3f target;
     
-    public MoveMessage() {        
+    public MoveMessage() {
     }
     
     public MoveMessage(long id, Vector3f target) {
@@ -26,6 +26,6 @@ public class MoveMessage extends PhysicsSyncMessage {
     @Override
     public void applyData(Object object) {
         MoveControl control = ((Spatial)object).getControl(MoveControl.class);
-        control.setTarget(target);
+        control.moveToTarget(target);
     }
 }

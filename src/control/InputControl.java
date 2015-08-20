@@ -20,19 +20,18 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.control.Control;
 import java.io.IOException;
 import main.ClientMain;
-import network.messages.VectorMessage;
 
 /**
  *
  * @author d
  */
-public class InputControl implements ActionListener { // TODO, Control {
+public class InputControl implements Control, ActionListener {
 
     private ClientMain app;
     private InputManager inputManager;
     private Node rootNode;
     private MoveControl control = null;
-    private Spatial spatial;
+    private Spatial spatial = null;
     
     public InputControl(ClientMain app) {
         this.app = app;
@@ -51,20 +50,22 @@ public class InputControl implements ActionListener { // TODO, Control {
     }
     
     // TODO
-    /*
+    
     public void setSpatial(Spatial spatial) {
-         if(spatial != null) {
-            this.spatial = spatial;
-        }
+        this.spatial = spatial;
+        if(spatial == null) {
+            control = null;
+            return;
+        }        
         control = spatial.getControl(MoveControl.class);
         if (control == null) {
-            throw new IllegalStateException("Cannot add UserInputControl to spatial without ManualControl!");
+            throw new IllegalStateException("Cannot add InputControl to spatial without ManualControl!");
         }
     }
 
     public void update(float tpf) {
     }
-    */
+    
     public void onAction(String name, boolean isPressed, float tpf) {
         if(name.equals("move") && isPressed) {
             Camera cam = app.getCamera();
@@ -80,19 +81,17 @@ public class InputControl implements ActionListener { // TODO, Control {
                 String target = results.getCollision(i).getGeometry().getName();
                 if(target.contains("terrainQuad")) {
                     control.setTarget(pt);
-                    //client.send(new VectorMessage(pt));
                 }
             }            
         }
     }
 
-    /*
+    
     public Control cloneForSpatial(Spatial spatial) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     public void render(RenderManager rm, ViewPort vp) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     public void write(JmeExporter ex) throws IOException {
@@ -102,5 +101,4 @@ public class InputControl implements ActionListener { // TODO, Control {
     public void read(JmeImporter im) throws IOException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-*/
 }

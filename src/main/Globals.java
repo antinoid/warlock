@@ -12,8 +12,9 @@ public class Globals {
     
     public static final float NETWORK_SYNC_FREQUENCY = 0.25f;
     public static final float NETWORK_MAX_PHYSICS_DELAY = 0.25f;
+    
     public static final int SCENE_FPS = 60;
     public static final float PHYSICS_FPS = 1f / 30f;
-    public static final String TEST = "hallo";
-    public static final String TEST2 = "anigav";
+    public static final boolean PHYSICS_THREADED = true;
+    public static final boolean PHYSICS_DEBUG = false;
 }

@@ -1,6 +1,7 @@
 package main;
 
 import com.jme3.asset.AssetManager;
+import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.material.Material;
 import com.jme3.scene.Node;
 import com.jme3.terrain.geomipmap.TerrainQuad;
@@ -20,10 +21,9 @@ public class Map {
     private Node rootNode;
     Material terrain_mat;
     
-    public Map(AssetManager assetManager, Node rootNode) {
+        public Map(AssetManager assetManager, String name) {
         
         this.assetManager = assetManager;
-        this.rootNode = rootNode;
         terrain_mat = new Material(assetManager,
                 "Common/MatDefs/Terrain/Terrain.j3md");
         terrain_mat.setTexture("Alpha", assetManager.loadTexture(
@@ -59,7 +59,11 @@ public class Map {
                 513, heightmap.getHeightMap());
         terrain.setMaterial(terrain_mat);
         terrain.setLocalTranslation(0, -200, 0);
-        terrain.setLocalScale(2f, 1f, 2f);  
-        rootNode.attachChild(terrain);
+        terrain.setLocalScale(2f, 1f, 2f);
+        terrain.addControl(new RigidBodyControl(0));
+    }
+        
+    public TerrainQuad getTerrain() {
+        return terrain;
     }
 }

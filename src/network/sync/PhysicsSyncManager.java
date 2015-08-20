@@ -163,8 +163,6 @@ public class PhysicsSyncManager extends AbstractAppState implements MessageListe
         } else {
             Logger.getLogger(PhysicsSyncManager.class.getName()).log(Level.WARNING, "Cannot find physics object for: ({0}){1}", new Object[]{message.syncId, message});
         }
-        //if(client != null)
-            //((ClientMain)app).uupdatePlayerData();
     }
 
     /**
@@ -180,10 +178,10 @@ public class PhysicsSyncManager extends AbstractAppState implements MessageListe
         double delayTime = (message.time + offset) - time;
         if (delayTime > maxDelay) {
             offset -= delayTime - maxDelay;
-            Logger.getLogger(PhysicsSyncManager.class.getName()).log(Level.INFO, "Decrease offset due to high delaytime ({0})", delayTime);
+            //Logger.getLogger(PhysicsSyncManager.class.getName()).log(Level.INFO, "Decrease offset due to high delaytime ({0})", delayTime);
         } else if (delayTime < 0) {
             offset -= delayTime;
-            Logger.getLogger(PhysicsSyncManager.class.getName()).log(Level.INFO, "Increase offset due to low delaytime ({0})", delayTime);
+            //Logger.getLogger(PhysicsSyncManager.class.getName()).log(Level.INFO, "Increase offset due to low delaytime ({0})", delayTime);
         }
         messageQueue.add(message);
     }
@@ -269,7 +267,7 @@ public class PhysicsSyncManager extends AbstractAppState implements MessageListe
         }
     }
 
-    public void messageReceived(Object source, final Message message) {
+    public void messageReceived(Object source, final Message message) {        
         assert (message instanceof PhysicsSyncMessage);
         if (client != null) {
             app.enqueue(new Callable<Void>() {

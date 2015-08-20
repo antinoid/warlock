@@ -11,6 +11,7 @@ import network.messages.ServerLoginMessage;
 import network.messages.RemovePlayerMessage;
 import network.messages.StartGameMessage;
 import network.messages.VectorMessage;
+import network.sync.SyncCharacterMessage;
 
 /**
  *
@@ -29,7 +30,8 @@ public class Util {
         AddPlayerMessage.class,
         MoveMessage.class,
         AddEntityMessage.class,
-        EnterEntityMessage.class
+        EnterEntityMessage.class,
+        SyncCharacterMessage.class
     }; 
     public static final Class[] CLIENT_MESSAGES = {
         VectorMessage.class,
@@ -61,5 +63,6 @@ public class Util {
         Serializer.registerClass(MoveMessage.class);
         Serializer.registerClass(AddEntityMessage.class);
         Serializer.registerClass(EnterEntityMessage.class);
+        Serializer.registerClass(SyncCharacterMessage.class);
     }
 }

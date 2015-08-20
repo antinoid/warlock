@@ -1,6 +1,7 @@
 package main;
 
 import com.jme3.app.SimpleApplication;
+import com.jme3.bullet.BulletAppState;
 import com.jme3.network.Network;
 import com.jme3.network.NetworkClient;
 import com.jme3.niftygui.NiftyJmeDisplay;
@@ -47,14 +48,16 @@ public class ClientMain extends SimpleApplication implements ScreenController {
     private TextRenderer statusText;
     private String name;
     private Label chatLabels[] = new Label[6];
-    private int chatIndex = 0;   
+    private int chatIndex = 0;
+    private BulletAppState bulletState;
+    private CameraState cameraState;
     
     public static void main(String[] args) {
         AppSettings settings = new AppSettings(true);               
         Util.registerSerializers();
         //settings.setFrameRate(Globals.FPS);
         //settings.setFullscreen(true);
-        settings.setResolution(800, 600);
+        settings.setResolution(480, 360);
         app = new ClientMain();
         app.setSettings(settings);
         app.setPauseOnLostFocus(false);
@@ -69,18 +72,28 @@ public class ClientMain extends SimpleApplication implements ScreenController {
         inputManager.setCursorVisible(true);
         flyCam.setEnabled(false);
         startNifty();
-        client = Network.createClient();
+        client = Network.createClient();       
+        
+        bulletState = new BulletAppState();
+        bulletState.setThreadingType(BulletAppState.ThreadingType.PARALLEL);
+        stateManager.attach(bulletState);
+        
         syncManager = new PhysicsSyncManager(app, client);
         syncManager.setMaxDelay(Globals.NETWORK_MAX_PHYSICS_DELAY);
         syncManager.setMessageTypes(Util.CLIENT_SYNC_MESSAGES);
         stateManager.attach(syncManager);
+        
         worldManager = new WorldManager(app, rootNode, client);
-        syncManager.addObject(-1, worldManager); 
+        stateManager.attach(worldManager);
+        
+        syncManager.addObject(-1, worldManager);
+        
         clientListener = new ClientListener(app, client, worldManager);
         client.addClientStateListener(clientListener);
-        client.addMessageListener(clientListener, Util.CLIENT_MESSAGES);
+        client.addMessageListener(clientListener, Util.CLIENT_MESSAGES);        
         
-        stateManager.attach(new CameraState(inputManager, app));
+        cameraState = new CameraState(inputManager, app, worldManager);
+        //stateManager.attach(new CameraState(inputManager, app, worldManager));
     }
     
     @Override
@@ -166,6 +179,7 @@ public class ClientMain extends SimpleApplication implements ScreenController {
     }
     
     public void loadLevel() {
+        // TODO add loading screen
         final TextRenderer statusTextRenderer;// = nifty.getScreen("loading")
 
         new Thread(new Runnable() {
@@ -175,24 +189,32 @@ public class ClientMain extends SimpleApplication implements ScreenController {
                     enqueue(new Callable<Void>() {
 
                         public Void call() throws Exception {
+                            System.out.println("loading terrain");
                             //nifty.gotoScreen("load_level");
                             //statusText.setText("Loading Terrain..");
                             return null;
                         }
                     }).get();
-                    worldManager.loadMap();
+                    worldManager.loadLevel("TODO");
+                    enqueue(new Callable<Void>() {
 
+                        public Void call() throws Exception {
+                            worldManager.attachLevel();
+                            nifty.gotoScreen("hud");      
+                            return null;
+                        }
+                    }).get();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         }).start();
-        
-        nifty.gotoScreen("hud");        
-        stateManager.attach(worldManager);
+          
+        //stateManager.attach(worldManager);
         for(int i = 0; i < chatLabels.length; i++) {
             chatLabels[i] = nifty.getScreen("hud").findNiftyControl("chat_label" + (i+1), Label.class);
-        }  
+        }        
+        stateManager.attach(cameraState);
     }
     @Override
     public void destroy() {
@@ -240,8 +262,7 @@ public class ClientMain extends SimpleApplication implements ScreenController {
                 
                 List<Element> elements= panel.getElements();
                 List<PlayerData> players = PlayerData.getPlayers();
-                System.out.println(players.size());
-                // 
+                //check if text corresponds to left player and remove it
                 for (Iterator<Element> it = elements.iterator(); it.hasNext();) {
                     Element element = it.next();
                     boolean mark = true;

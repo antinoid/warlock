@@ -26,14 +26,16 @@ public class ServerGameManager extends AbstractAppState {
     }
     
     public synchronized void startGame() {
+        worldManager.loadLevel("TODO");
+        //worldManager.attachLevel();
+        //FIXME player ready check!
         int i = 0;
         for(Iterator<PlayerData> it = PlayerData.getPlayers().iterator(); it.hasNext();) {
             PlayerData playerData = it.next();
             //long playerId = worldManager.addNewPlayer(playerData.getIntData("group_id"), 
-            //        playerData.getStringData("name"));
+            //        playerData.getStringData("name"));            
             long playerId = playerData.getId();
-            System.out.println("playerId: " + playerId);
-            long entityId = worldManager.addNewEntity(new Vector3f(i * 3, -5, 0), Quaternion.ZERO);
+            long entityId = worldManager.addNewEntity(new Vector3f(i, -25, 0), Quaternion.ZERO);
             PlayerData.setData(playerId, "character_entity_id", entityId);
             worldManager.enterEntity(playerId, entityId);
             i++;

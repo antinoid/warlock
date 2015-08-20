@@ -5,8 +5,12 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.AssetManager;
+import com.jme3.asset.DesktopAssetManager;
+import com.jme3.bullet.BulletAppState;
+import com.jme3.bullet.PhysicsSpace;
+import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
+import com.jme3.bullet.control.CharacterControl;
 import com.jme3.collision.CollisionResults;
-import com.jme3.input.FlyByCamera;
 import com.jme3.input.InputManager;
 import com.jme3.input.KeyInput;
 import com.jme3.input.MouseInput;
@@ -27,6 +31,7 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.control.Control;
 import com.jme3.scene.shape.Box;
+import control.InputControl;
 import control.MoveControl;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -54,6 +59,7 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
     private AssetManager assetManager;
     private InputManager inputManager;
     private Node rootNode;
+    private Node worldRoot;
     private HashMap<Long, Spatial> entities = new HashMap<Long, Spatial>();
     private int newId = -1;
     private long myPlayerId = -2;
@@ -62,6 +68,7 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
     private List<Control> userControls = new LinkedList();
     private Map map;
     //private MoveControl control = null;
+    private PhysicsSpace space;
     
     public WorldManager(Application app, Node rootNode, Server server) {
         this.app = (ServerMain) app;
@@ -69,6 +76,7 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
         this.assetManager = app.getAssetManager();
         this.server = server;
         this.syncManager = this.app.getStateManager().getState(PhysicsSyncManager.class);
+        space = app.getStateManager().getState(BulletAppState.class).getPhysicsSpace();
     }
     
     public WorldManager(Application app, Node rootNode, Client client) {
@@ -78,6 +86,7 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
         this.inputManager = app.getInputManager();
         this.client = client;        
         this.syncManager = this.app.getStateManager().getState(PhysicsSyncManager.class);
+        space = app.getStateManager().getState(BulletAppState.class).getPhysicsSpace();
     }        
     
     @Override
@@ -85,57 +94,98 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
         if(!isServer()) {
             //addUserControls(player);
             super.initialize(stateManager, app);
-            this.app = (ClientMain) app;
-            FlyByCamera flyCam = this.app.getFlyByCamera();
-            flyCam.setMoveSpeed(100);
-            
+            this.app = (ClientMain) app;            
             initCamera();
-            initKeys();
+            //initKeys();
         }
     }
-     
+    
+    /*
     private void initKeys() {
         inputManager.addMapping("move", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
         inputManager.addMapping("test", new KeyTrigger(KeyInput.KEY_F));
         inputManager.addListener(this, "move");
         inputManager.addListener(this, "test");
-    }
+    }*/
     
     private void initCamera(){
         if(!isServer()) {
         Camera cam = app.getCamera();
         cam.setFrustumPerspective(45f, cam.getWidth() / cam.getHeight(), 1f, 1000f);
-        cam.setLocation(new Vector3f(0f, 0f, 10f));
+        cam.setLocation(new Vector3f(0f, 20f, 10f));
         cam.lookAt(new Vector3f(0f, -10f, 0f), Vector3f.UNIT_Y);
-            app.getFlyByCamera().setEnabled(false);
+        app.getFlyByCamera().setEnabled(false);
         }
+    }
+        
+    private boolean isServer() {
+        return server != null;
+    }
+    
+    public PhysicsSyncManager getSyncManager() {
+        return syncManager;
+    }
+    
+    public PhysicsSpace getPhysicSpace() {
+        return space;
     }
     
     public long getMyPlayerId() {
         return myPlayerId;
     }
     
+    public void setMyPlayerId(long id) {
+        myPlayerId = id;
+    }    
+    
     /*
     public long getMyGroupId() {
         return myGroupId;
     }*/
-
-    public PhysicsSyncManager getSyncManager() {
-        return syncManager;
-    }
-    
-    public void setMyPlayerId(long id) {
-        this.myPlayerId = id;
-    }
     
     /*
     public void setMyGroupId(long id) {
         this.myGroupId = id;
     }*/
-        
-    private boolean isServer() {
-        return server != null;
+    
+    /**
+     * loads specified level node
+     * @param name 
+     */
+    public void loadLevel(String name) {
+        Map map = new Map(assetManager, name);
+        worldRoot = new Node("world Root");
+        worldRoot.attachChild(map.getTerrain());
     }
+    
+    /**
+     * detach level and clear cache
+     */
+    public void closeLevel() {
+        for(Iterator<PlayerData> it = PlayerData.getPlayers().iterator(); it.hasNext();) {
+            PlayerData playerData = it.next();
+            playerData.setData("entity_id", -1l);
+        }
+        for (Iterator<Long> it = entities.keySet().iterator(); it.hasNext();) {
+            Long entry = it.next();
+            syncManager.removeObject(entry);
+        }
+        syncManager.clearObjects();
+        entities.clear();
+        newId = -1;
+        space.removeAll(worldRoot);
+        rootNode.detachChild(worldRoot);
+        ((DesktopAssetManager) assetManager).clearCache();
+    }
+    
+    /**
+     * attach level node to rootNode
+     */
+    public void attachLevel() {
+        space.addAll(worldRoot);
+        rootNode.attachChild(worldRoot);
+    }
+
      /**
      * adds a new player with new id (used on server only)
      * @param id
@@ -167,6 +217,10 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
         }
     }
     
+    /**
+     * removes a player (sends message if server)
+     * @param id 
+     */
     public void removePlayer(long id) {
         if(isServer()) {
             syncManager.broadcast(new RemovePlayerMessage(id));
@@ -228,24 +282,25 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
             syncManager.broadcast(new AddEntityMessage(id, location, rotation));
         }
         // TODO temp, load real model
-        Box boxMesh = new Box(1f,1f,1f);
-        Spatial entity = new Geometry("Player", boxMesh); 
+        Box boxMesh = new Box(2f,2f,2f);
+        Spatial entity = new Geometry("Player", boxMesh);
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        entity.setMaterial(mat); 
-        entity.setUserData("player_id", id);
-        //entity.setUserData("group_id", id);
+        entity.setMaterial(mat);
+        // Create collision shape for entity
+        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.5f, 6f, 1);
+        
+        entity.addControl(new CharacterControl(capsuleShape, 0.01f));
+        entity.setUserData("player_id", -1l);
+        //entity.setUserData("group_id", -1);
         entity.setUserData("entity_id", id);
         entity.setLocalTranslation(location);
-        entity.setLocalRotation(rotation);
+        entity.setLocalRotation(rotation);        
         entities.put(id, entity);
         syncManager.addObject(id, entity);
-        // TODO add ctrls to all
-/*        System.out.println(PlayerData.getLongData(myPlayerId, "character_entity_id"));
-        if(PlayerData.getLongData(myPlayerId, "character_entity_id") == id) {
-            player = entity;
-            player.addControl(new MoveControl());
-        }*/
-        rootNode.attachChild(entity);
+        space.addAll(entity);
+        System.out.println(worldRoot);
+        System.out.println(entity);
+        worldRoot.attachChild(entity);
     }
     
     /**
@@ -266,8 +321,7 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
             curEntitySpat.setUserData("player_id", -1l);
             //curEntitySpat.setUserData("group_id", -1);
             if (playerId == myPlayerId) {
-                removeUserControls(curEntitySpat);
-            
+                removeUserControls(curEntitySpat);            
             }        
         }
         PlayerData.setData(playerId, "entity_id", entityId);
@@ -276,7 +330,30 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
             Spatial spat = getEntity(entityId);
             spat.setUserData("player_id", playerId);
             //spat.setUserData("group_id", groupId);
-            spat.addControl(new MoveControl());
+            if(!isServer()) {
+                makeControl(entityId, client);
+                System.out.println("ctrl for " + entityId);
+            } else {
+                makeControl(entityId, null);
+            }
+            if(playerId == myPlayerId) {
+                // addUserControls
+                spat.addControl(new InputControl((ClientMain) app));
+            }
+        }
+    }
+    
+    /**
+     * 
+     */
+    private void makeControl(long entityId, Client client) {
+        Spatial spat = getEntity(entityId);
+        if(spat.getControl(CharacterControl.class) != null) {
+            if((Long) spat.getUserData("player_id") == myPlayerId) {
+                spat.addControl(new MoveControl(client, entityId));
+            } else {
+                spat.addControl(new MoveControl());
+            }
         }
     }
     
@@ -300,11 +377,6 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
             Control control = it.next();
             spat.removeControl(control);
         }
-    }
-    
-    public void loadMap() {
-        // TODO Map ugly
-        map = new Map(assetManager, rootNode);
     }
     
     /*
@@ -340,18 +412,11 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
                 Vector3f pt = results.getCollision(i).getContactPoint();
                 String target = results.getCollision(i).getGeometry().getName();
                 if(target.contains("terrainQuad")) {
-                    //control.setTarget(pt);
-                    client.send(new MoveMessage(myPlayerId, pt));                    
+                    client.send(new MoveMessage(myPlayerId, pt));
                 }
-            }            
-        } else if(name.equals("test") && isPressed) {
-            //System.out.println(myPlayerId);
-            //System.out.println(myGroupId);
-            for(Iterator<PlayerData> it = PlayerData.getPlayers().iterator(); it.hasNext();) {
-                PlayerData playerData = it.next();
-                System.out.println("name: " + playerData.getStringData("name"));
-                System.out.println("entity id: : " + playerData.getLongData("entity_id"));
             }
+        } else if(name.equals("test") && isPressed) {
+            System.out.println("myPlayerId: " + myPlayerId);
         }
     }    
 }

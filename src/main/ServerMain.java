@@ -1,9 +1,13 @@
 package main;
 
 import com.jme3.app.SimpleApplication;
+import com.jme3.bullet.BulletAppState;
 import com.jme3.network.Network;
 import com.jme3.network.Server;
 import com.jme3.system.JmeContext;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import network.ServerListener;
 import network.sync.PhysicsSyncManager;
 
@@ -19,6 +23,7 @@ public class ServerMain extends SimpleApplication {
     private WorldManager worldManager;
     private ServerGameManager gameManager;
     private PhysicsSyncManager syncManager;
+    private BulletAppState bulletState;
     
     public static void main(String[] args) {
         app = new ServerMain();
@@ -30,19 +35,30 @@ public class ServerMain extends SimpleApplication {
         try {
             server = Network.createServer(Globals.DEFAULT_PORT);
             server.start();
-        } catch (Exception e) {}
+        } catch (IOException ex) {
+            Logger.getLogger(ServerMain.class.getName()).log(Level.SEVERE, "Cannot start server: {0}", ex);
+            return;
+        }        
+        bulletState = new BulletAppState();
+        stateManager.attach(bulletState);
+        bulletState.getPhysicsSpace().setAccuracy(Globals.PHYSICS_FPS); 
+        
         syncManager = new PhysicsSyncManager(app, server);
         syncManager.setMaxDelay(Globals.NETWORK_MAX_PHYSICS_DELAY);
         syncManager.setMessageTypes(Util.SERVER_SYNC_MESSAGES);
         stateManager.attach(syncManager);
+        
         worldManager = new WorldManager(app, rootNode, server);
         stateManager.attach(worldManager);
+        
         syncManager.addObject(-1, worldManager);
+        
         gameManager = new ServerGameManager();
         stateManager.attach(gameManager);
+        
         serverListener = new ServerListener(app, server, worldManager, gameManager);
         server.addConnectionListener(serverListener);
-        server.addMessageListener(serverListener, Util.SERVER_MESSAGES);
+        server.addMessageListener(serverListener, Util.SERVER_MESSAGES);       
     }
     
     @Override

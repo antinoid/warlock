@@ -13,7 +13,7 @@ import main.ClientMain;
 import main.Globals;
 import main.WorldManager;
 import network.messages.RemovePlayerMessage;
-import network.messages.StartGameMessage;
+import network.messages.LoadGameMessage;
 
 /**
  *
@@ -65,8 +65,8 @@ public class ClientListener implements MessageListener<Client>, ClientStateListe
             app.updateLobby();
         } else if (message instanceof RemovePlayerMessage) {
             app.updateLobby();
-        } else if (message instanceof StartGameMessage) {
-            StartGameMessage msg = (StartGameMessage) message;
+        } else if (message instanceof LoadGameMessage) {
+            LoadGameMessage msg = (LoadGameMessage) message;
             app.loadLevel();
         }
         else if (message instanceof ChatMessage) {

@@ -42,10 +42,11 @@ public abstract class NetworkedControl implements Control {
     public abstract void moveToTarget(Vector3f target);
     
     public void sendMoveSync() {
+        /*
         System.out.println("send move sync");
         System.out.println(entityId);
         System.out.println(lastTarget);
-        System.out.println(client);
+        System.out.println(client);*/
         client.send(new MoveMessage(entityId, lastTarget));
     }
     

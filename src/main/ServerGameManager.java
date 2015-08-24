@@ -27,7 +27,7 @@ public class ServerGameManager extends AbstractAppState {
     
     public synchronized void startGame() {
         worldManager.loadLevel("TODO");
-        //worldManager.attachLevel();
+        worldManager.attachLevel();
         //FIXME player ready check!
         int i = 0;
         for(Iterator<PlayerData> it = PlayerData.getPlayers().iterator(); it.hasNext();) {

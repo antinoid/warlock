@@ -51,7 +51,6 @@ import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import main.ClientMain;
-import network.messages.AddEntityMessage;
 
 /**
  * <p>Handles syncing of physics enabled server/client games. Puts messages in a queue
@@ -68,7 +67,7 @@ public class PhysicsSyncManager extends AbstractAppState implements MessageListe
     private Client client;
     private float syncFrequency = 0.25f;
     LinkedList<SyncMessageValidator> validators = new LinkedList<SyncMessageValidator>();
-    HashMap<Long, Object> syncObjects = new HashMap<Long, Object>();
+    public HashMap<Long, Object> syncObjects = new HashMap<Long, Object>();
     double time = 0;
     double offset = Double.MIN_VALUE;
     private double maxDelay = 0.50;
@@ -267,8 +266,8 @@ public class PhysicsSyncManager extends AbstractAppState implements MessageListe
         }
     }
 
-    public void messageReceived(Object source, final Message message) {        
-        assert (message instanceof PhysicsSyncMessage);
+    public void messageReceived(Object source, final Message message) {  
+        assert (message instanceof PhysicsSyncMessage);        
         if (client != null) {
             app.enqueue(new Callable<Void>() {
 

@@ -1,11 +1,9 @@
 package network;
 
-import network.messages.VectorMessage;
 import network.messages.ServerLoginMessage;
 import network.messages.AddPlayerMessage;
 import network.messages.ClientLoginMessage;
 import network.messages.ChatMessage;
-import com.jme3.math.Vector3f;
 import com.jme3.network.ConnectionListener;
 import com.jme3.network.HostedConnection;
 import com.jme3.network.Message;
@@ -19,7 +17,8 @@ import main.PlayerData;
 import main.ServerGameManager;
 import main.ServerMain;
 import main.WorldManager;
-import network.messages.StartGameMessage;
+import network.messages.ClientReadyMessage;
+import network.messages.LoadGameMessage;
 
 /**
  *
@@ -31,6 +30,7 @@ public class ServerListener implements MessageListener<HostedConnection>, Connec
     Server server;
     WorldManager worldManager;
     ServerGameManager gameManager;
+    int readyClients = 0;
     
     public ServerListener(ServerMain app, Server server, WorldManager worldManager, ServerGameManager gameManager) {
         this.app = app;
@@ -44,8 +44,7 @@ public class ServerListener implements MessageListener<HostedConnection>, Connec
         int clientId = (int) client.getId();
         if(!ServerClientData.exists(clientId)) {
             ServerClientData.add(clientId);
-            System.out.println("client connected");
-            System.out.println("id: " + client.getId());
+            System.out.println("client connected, id: " + client.getId());
         } else {
             System.out.println("duplicate clientId");
         }
@@ -61,7 +60,9 @@ public class ServerListener implements MessageListener<HostedConnection>, Connec
             public Void call() throws Exception {
                 String name = PlayerData.getStringData(playerId, "name");
                 worldManager.removePlayer(playerId);
-                server.broadcast(new ChatMessage(name + " left the game"));                
+                server.broadcast(new ChatMessage(name + " left the game"));
+                //DEBUG
+                app.stop();
                 return null;
             }
         });
@@ -100,23 +101,22 @@ public class ServerListener implements MessageListener<HostedConnection>, Connec
                     return null;
                 }
             });
-        } else if (message instanceof StartGameMessage) {
-            StartGameMessage msg = (StartGameMessage) message;
-            app.enqueue(new Callable<Void>() {
-                
-                public Void call() {
-                    gameManager.startGame();
-                    return null;
-                }
-            });            
+        } else if (message instanceof LoadGameMessage) {
+            LoadGameMessage msg = (LoadGameMessage) message;           
             server.broadcast(msg);
+        } else if (message instanceof ClientReadyMessage) {
+            readyClients++;
+            if(readyClients == server.getConnections().size()) {
+                app.enqueue(new Callable<Void>() {
+                    public Void call() {
+                        gameManager.startGame();
+                        return null;
+                    }
+                });
+            }
         } else if (message instanceof ChatMessage) {
             ChatMessage msg = (ChatMessage) message;
             server.broadcast(msg);
-        } else if ( message instanceof VectorMessage) {
-            VectorMessage msg = (VectorMessage) message;
-            msg.setVector(new Vector3f(2, 2, 2));
-            source.send(msg);
         }
     }
 }

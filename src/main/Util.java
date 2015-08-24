@@ -7,9 +7,10 @@ import network.messages.ClientLoginMessage;
 import network.messages.EnterEntityMessage;
 import network.messages.MoveMessage;
 import network.messages.AddPlayerMessage;
+import network.messages.ClientReadyMessage;
 import network.messages.ServerLoginMessage;
 import network.messages.RemovePlayerMessage;
-import network.messages.StartGameMessage;
+import network.messages.LoadGameMessage;
 import network.messages.VectorMessage;
 import network.sync.SyncCharacterMessage;
 
@@ -40,7 +41,7 @@ public class Util {
         AddPlayerMessage.class,
         ChatMessage.class,
         RemovePlayerMessage.class,
-        StartGameMessage.class
+        LoadGameMessage.class,
     };    
     public static final Class[] SERVER_MESSAGES = {
         VectorMessage.class,
@@ -49,7 +50,8 @@ public class Util {
         AddPlayerMessage.class,
         ChatMessage.class,
         RemovePlayerMessage.class,
-        StartGameMessage.class
+        LoadGameMessage.class,
+        ClientReadyMessage.class            
     };
  
     public static void registerSerializers() {
@@ -59,10 +61,11 @@ public class Util {
         Serializer.registerClass(AddPlayerMessage.class);
         Serializer.registerClass(ChatMessage.class);
         Serializer.registerClass(RemovePlayerMessage.class);
-        Serializer.registerClass(StartGameMessage.class);
+        Serializer.registerClass(LoadGameMessage.class);
         Serializer.registerClass(MoveMessage.class);
         Serializer.registerClass(AddEntityMessage.class);
         Serializer.registerClass(EnterEntityMessage.class);
         Serializer.registerClass(SyncCharacterMessage.class);
+        Serializer.registerClass(ClientReadyMessage.class);
     }
 }

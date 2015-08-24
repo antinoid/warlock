@@ -8,6 +8,6 @@ import com.jme3.network.serializing.Serializable;
  * @author d
  */
 @Serializable()
-public class StartGameMessage extends AbstractMessage {
+public class ClientReadyMessage extends AbstractMessage {
 
 }

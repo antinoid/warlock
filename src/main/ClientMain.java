@@ -25,7 +25,8 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import network.messages.ChatMessage;
 import network.ClientListener;
-import network.messages.StartGameMessage;
+import network.messages.ClientReadyMessage;
+import network.messages.LoadGameMessage;
 import network.sync.PhysicsSyncManager;
 
 /**
@@ -175,7 +176,7 @@ public class ClientMain extends SimpleApplication implements ScreenController {
      * called from gui
      */
     public void startGame() {
-        client.send(new StartGameMessage());
+        client.send(new LoadGameMessage());
     }
     
     public void loadLevel() {
@@ -189,7 +190,7 @@ public class ClientMain extends SimpleApplication implements ScreenController {
                     enqueue(new Callable<Void>() {
 
                         public Void call() throws Exception {
-                            System.out.println("loading terrain");
+                            //System.out.println("loading terrain");
                             //nifty.gotoScreen("load_level");
                             //statusText.setText("Loading Terrain..");
                             return null;
@@ -204,12 +205,12 @@ public class ClientMain extends SimpleApplication implements ScreenController {
                             return null;
                         }
                     }).get();
+                    client.send(new ClientReadyMessage());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         }).start();
-          
         //stateManager.attach(worldManager);
         for(int i = 0; i < chatLabels.length; i++) {
             chatLabels[i] = nifty.getScreen("hud").findNiftyControl("chat_label" + (i+1), Label.class);

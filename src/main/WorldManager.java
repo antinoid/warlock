@@ -10,27 +10,24 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
-import com.jme3.collision.CollisionResults;
 import com.jme3.input.InputManager;
 import com.jme3.input.KeyInput;
-import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
-import com.jme3.input.controls.MouseButtonTrigger;
-import com.jme3.material.Material;
+import com.jme3.light.AmbientLight;
+import com.jme3.light.DirectionalLight;
+import com.jme3.light.PointLight;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.Quaternion;
-import com.jme3.math.Ray;
-import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.network.Client;
 import com.jme3.network.Server;
 import com.jme3.renderer.Camera;
-import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.control.Control;
-import com.jme3.scene.shape.Box;
+import com.jme3.scene.control.LightControl;
 import control.InputControl;
 import control.MoveControl;
 import java.util.HashMap;
@@ -42,7 +39,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import network.messages.AddEntityMessage;
 import network.messages.EnterEntityMessage;
-import network.messages.MoveMessage;
 import network.messages.AddPlayerMessage;
 import network.messages.RemovePlayerMessage;
 import network.sync.PhysicsSyncManager;
@@ -96,10 +92,15 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
             super.initialize(stateManager, app);
             this.app = (ClientMain) app;            
             initCamera();
-            //initKeys();
+            initKeys();
         }
     }
     
+    // debug stuff
+    private void initKeys() {
+        inputManager.addMapping("debug", new KeyTrigger(KeyInput.KEY_F));
+        inputManager.addListener(this, "debug");
+    }
     /*
     private void initKeys() {
         inputManager.addMapping("move", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
@@ -111,8 +112,8 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
     private void initCamera(){
         if(!isServer()) {
         Camera cam = app.getCamera();
-        cam.setFrustumPerspective(45f, cam.getWidth() / cam.getHeight(), 1f, 1000f);
-        cam.setLocation(new Vector3f(0f, 20f, 10f));
+        cam.setFrustumPerspective(45f, cam.getWidth() / cam.getHeight(), 10f, 1000f);
+        cam.setLocation(new Vector3f(0f, 10f, 10f));
         cam.lookAt(new Vector3f(0f, -10f, 0f), Vector3f.UNIT_Y);
         app.getFlyByCamera().setEnabled(false);
         }
@@ -153,6 +154,7 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
      * @param name 
      */
     public void loadLevel(String name) {
+        Logger.getLogger(WorldManager.class.getName()).log(Level.INFO, "loading level", worldRoot);            
         Map map = new Map(assetManager, name);
         worldRoot = new Node("world Root");
         worldRoot.attachChild(map.getTerrain());
@@ -183,6 +185,14 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
      */
     public void attachLevel() {
         space.addAll(worldRoot);
+        AmbientLight al = new AmbientLight();
+        DirectionalLight sun = new DirectionalLight();
+        al.setColor(ColorRGBA.White);        
+        sun.setColor(ColorRGBA.White);
+        sun.setDirection(new Vector3f(-.5f,-.5f,-.5f).normalizeLocal());
+        rootNode.addLight(al);
+        rootNode.addLight(sun);
+       // rootNode.addLight(al);
         rootNode.attachChild(worldRoot);
     }
 
@@ -282,10 +292,18 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
             syncManager.broadcast(new AddEntityMessage(id, location, rotation));
         }
         // TODO temp, load real model
+        /*
         Box boxMesh = new Box(2f,2f,2f);
         Spatial entity = new Geometry("Player", boxMesh);
         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        entity.setMaterial(mat);
+        entity.setMaterial(mat);*/
+        Spatial entity = assetManager.loadModel("Models/Blender/aphrodite/SM_Aphrodite.j3o");
+        entity.setLocalScale(0.12f);
+        PointLight myLight = new PointLight();
+        myLight.setColor(ColorRGBA.White);
+        rootNode.addLight(myLight);
+        LightControl lightControl = new LightControl(myLight);
+        entity.addControl(lightControl);
         // Create collision shape for entity
         CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1.5f, 6f, 1);
         
@@ -298,8 +316,8 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
         entities.put(id, entity);
         syncManager.addObject(id, entity);
         space.addAll(entity);
-        System.out.println(worldRoot);
-        System.out.println(entity);
+        //System.out.println(worldRoot);
+        //System.out.println(entity);
         worldRoot.attachChild(entity);
     }
     
@@ -332,7 +350,7 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
             //spat.setUserData("group_id", groupId);
             if(!isServer()) {
                 makeControl(entityId, client);
-                System.out.println("ctrl for " + entityId);
+                //System.out.println("ctrl for " + entityId);
             } else {
                 makeControl(entityId, null);
             }
@@ -399,24 +417,12 @@ public class WorldManager extends AbstractAppState implements ActionListener, An
     
     @Override
     public void onAction(String name, boolean isPressed, float tpf) {
-        if(name.equals("move") && isPressed) {
-            Camera cam = app.getCamera();
-            CollisionResults results = new CollisionResults();
-            Vector2f click2d = inputManager.getCursorPosition();
-            Vector3f click3d = cam.getWorldCoordinates(new Vector2f(click2d.x, click2d.y), 0f).clone();
-            Vector3f dir = cam.getWorldCoordinates(new Vector2f(click2d.x, click2d.y), 1f).subtractLocal(click3d).normalizeLocal();
-            Ray ray = new Ray(click3d, dir);
-            rootNode.collideWith(ray, results);
-            for (int i = 0; i < results.size(); i++) {
-                float dist = results.getCollision(i).getDistance();
-                Vector3f pt = results.getCollision(i).getContactPoint();
-                String target = results.getCollision(i).getGeometry().getName();
-                if(target.contains("terrainQuad")) {
-                    client.send(new MoveMessage(myPlayerId, pt));
-                }
-            }
-        } else if(name.equals("test") && isPressed) {
+        if(name.equals("debug") && isPressed) {
             System.out.println("myPlayerId: " + myPlayerId);
+            System.out.println("entities: " + entities);
+            System.out.println("sync Objects: " + syncManager.syncObjects);
+            System.out.println("getPlayers: " + PlayerData.getPlayers());
+            
         }
     }    
 }

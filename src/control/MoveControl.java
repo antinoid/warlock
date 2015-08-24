@@ -30,6 +30,7 @@ public class MoveControl extends NetworkedControl {
     private Vector3f tempVec = new Vector3f();
     
     private Vector3f target = null;
+    private int debug = 0;
     
     public MoveControl() {        
     }
@@ -54,21 +55,49 @@ public class MoveControl extends NetworkedControl {
     
     public void moveToTarget(Vector3f target) {
         this.target = target;
+        characterControl.setViewDirection(target.subtract(spatial.getLocalTranslation()).multLocal(1f, 0f, 1f));
     }
     
     public void update(float tpf) {
         if(target != null && enabled) {
             
-            //update if sync changed direction
-            if(!characterControl.getWalkDirection().equals(walkDirection) || !characterControl.getViewDirection().equals(viewDirection)) {
-                walkDirection.set(characterControl.getWalkDirection());
-                viewDirection.set(characterControl.getViewDirection()).normalizeLocal();;
-            }            
-            walkDirection.set(target.subtract(spatial.getLocalTranslation()).normalizeLocal());
+            //walkDirection.set(0, 0, 0);
+            //update if sync changed direction            
+            if(!characterControl.getWalkDirection().equals(walkDirection)) {
+                //walkDirection.set(characterControl.getWalkDirection());
+               // viewDirection.set(characterControl.getViewDirection()).normalizeLocal();;
+                System.out.println("sync update");
+            }
+            
+            walkDirection = target.subtract(spatial.getLocalTranslation());
+            walkDirection.normalizeLocal().multLocal(1f, 0f, 1f);
+            if(walkDirection.lengthSquared() <= .1) {
+                //System.out.println("0");
+                //characterControl.setViewDirection(walkDirection);
+            }
             characterControl.setWalkDirection(walkDirection);
-            characterControl.setViewDirection(viewDirection);
-        }        
-        /* old
+        }
+        
+            /*               
+            tempVec = target.subtract(spatial.getLocalTranslation());
+            walkDirection.set(tempVec.normalize());
+            characterControl.setWalkDirection(walkDirection);
+            
+            
+            if(tempVec.length() >= 2) {
+                
+                viewDirection.set(tempVec.multLocal(1f, 0f, 1f));
+                characterControl.setViewDirection(viewDirection);
+            }
+            
+            if(debug%3000 == 0) {
+                System.out.println("tempVec: " + tempVec);
+                System.out.println("viewDirection: " + viewDirection);
+            }
+            debug++;
+        }      
+        
+        //old
         if(target != null && enabled) {
             Vector3f v = spatial.getLocalTranslation();
             Vector3f vn;

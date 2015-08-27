@@ -5,6 +5,7 @@ package main;
  * @author d
  */
 public class Globals {
+    public static final boolean DEBUG = true;
     public static final String NAME = "test";
     public static final String DEFAULT_SERVER = "localhost";
     public static final int VERSION = 1;

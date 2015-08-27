@@ -4,19 +4,18 @@
     <useStyles filename="nifty-default-styles.xml"/>
     <useStyles filename="Interface/Styles/styles.xml"/>
     <screen id="start" controller="main.ClientMain">
-        <layer id="background" childLayout="absolute" backgroundImage="Interface/Pics/background.jpeg"/>
-        <layer id="foreground" childLayout="center" backgroundColor="#77777785">
-			<panel id="loginpanel" childLayout="vertical" backgroundColor="#000A" valign="center" width="25%" height="32%">
+        <layer id="layer" childLayout="center" backgroundImage="Interface/Pics/background.jpeg">
+			<panel id="panel" childLayout="vertical" backgroundColor="#000A" valign="center" width="30%" height="38%">
 				<panel id="logintop" backgroundColor="#0000"  childLayout="horizontal" height="58%">
-					<panel id="left" childLayout="center" width="50%" align="left" height="100%">
-						<control name="label" id="IPLabel" width="100px" valign="top" text="Server IP" align="center" height="50px" font="aurulent-sans-16.fnt"/>
-						<control name="label" id="PortLabel" width="100px" valign="center" text="Port" align="center" height="50px" font="aurulent-sans-16.fnt"/>
-						<control name="label" id="NameLabel" width="100px" valign="bottom" text="Name" height="50px" font="aurulent-sans-16.fnt"/>
+					<panel id="left" childLayout="vertical" width="50%" align="left" height="100%" padding="6px">
+						<control name="label" text="Server IP" height="33%" font="aurulent-sans-16.fnt"/>
+						<control name="label" text="Port" height="33%" font="aurulent-sans-16.fnt"/>
+						<control name="label" text="Name" height="33%" font="aurulent-sans-16.fnt"/>
 					</panel>
-					<panel id="right" childLayout="center" width="50%" align="right" height="100%">
-						<control name="textfield" id="IPTextfield" width="76px" x="26" y="15" valign="top" text="localhost" height="24px"/>
-						<control name="textfield" id="PortTextfield" width="50%" text="16222"/>
-						<control name="textfield" id="NameTextfield" width="50%" valign="bottom" text="${CALL.getPlayerName()}"/>
+					<panel id="right" childLayout="vertical" width="50%" align="right" height="100%" padding="6px">
+						<control name="textfield" id="IPTextfield" width="76px" height="33%" align="center" text="localhost"/>
+						<control name="textfield" id="PortTextfield" width="50%" height="33%" align="center" text="16222"/>
+						<control name="textfield" id="NameTextfield" width="50%" height="33%" align="center" text="${CALL.getPlayerName()}"/>
 					</panel>
 				</panel>
 				<panel id="loginmid" childLayout="overlay" height="19%" padding="5px" marginTop="5px">
@@ -65,7 +64,7 @@
         </layer>
     </screen>
     <screen id="hud" controller="main.ClientMain">
-        <layer id="layer" childLayout="center"paddingLeft="5px" paddingBottom="5px">
+        <layer id="layer" childLayout="center" paddingLeft="5px" paddingBottom="5px">
             <panel id="panel" childLayout="vertical" backgroundColor="#666a" height ="180px" width="250px" align="left" valign="bottom">
 				<panel id="log_panel" childLayout="vertical" backgroundColor="#444b" height="80%" width="100%" align="center">
 					<control name="label" id="chat_label1" align="center" textHAlign="left" width="95%" height="16%"/>

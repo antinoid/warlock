@@ -110,7 +110,7 @@ public class ClientMain extends SimpleApplication implements ScreenController {
         } catch(Exception e) {
             e.printStackTrace();
         }
-        statusText = nifty.getScreen("start").findElementByName("foreground").findElementByName("loginpanel").findElementByName("loginbot").findElementByName("status_text").getRenderer(TextRenderer.class);
+        statusText = nifty.getScreen("start").findElementByName("layer").findElementByName("panel").findElementByName("loginbot").findElementByName("status_text").getRenderer(TextRenderer.class);
         statusText.setTextHAlign(HorizontalAlign.center);
         guiViewPort.addProcessor(niftyDisplay);
         //setStatusText("idle");
@@ -134,9 +134,9 @@ public class ClientMain extends SimpleApplication implements ScreenController {
      * connect to server (called from gui)
      */
     public void login() {
-        final String serverIp = nifty.getScreen("start").findElementByName("foreground").findElementByName("loginpanel").findElementByName("logintop").findElementByName("right").findElementByName("IPTextfield").getControl(TextFieldControl.class).getRealText();
-        final int port = Integer.valueOf(nifty.getScreen("start").findElementByName("foreground").findElementByName("loginpanel").findElementByName("logintop").findElementByName("right").findElementByName("PortTextfield").getControl(TextFieldControl.class).getRealText());
-        name = nifty.getScreen("start").findElementByName("foreground").findElementByName("loginpanel").findElementByName("logintop").findElementByName("right").findElementByName("NameTextfield").getControl(TextFieldControl.class).getRealText();
+        final String serverIp = nifty.getScreen("start").findElementByName("layer").findElementByName("panel").findElementByName("logintop").findElementByName("right").findElementByName("IPTextfield").getControl(TextFieldControl.class).getRealText();
+        final int port = Integer.valueOf(nifty.getScreen("start").findElementByName("layer").findElementByName("panel").findElementByName("logintop").findElementByName("right").findElementByName("PortTextfield").getControl(TextFieldControl.class).getRealText());
+        name = nifty.getScreen("start").findElementByName("layer").findElementByName("panel").findElementByName("logintop").findElementByName("right").findElementByName("NameTextfield").getControl(TextFieldControl.class).getRealText();
         if(name.trim().length() == 0) {
             setStatusText("invalid Username");
             // TODO check player names
